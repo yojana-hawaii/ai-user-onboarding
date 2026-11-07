@@ -1,0 +1,9 @@
+title = "DaHub secret scanning"
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated build outputs and dependency caches"
+paths = [
+  '''(^|/)(bin|obj|node_modules|dist|\.angular|coverage|TestResults)(/|$)'''
+]

@@ -1,0 +1,42 @@
+name: Development checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+  schedule:
+    - cron: '23 17 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build, test and format
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build development tools
+        run: docker compose build backend-check web-check
+      - name: Verify inside development containers
+        shell: pwsh
+        run: ./scripts/verify.ps1
+
+  security:
+    name: Security checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Build development tools
+        run: docker compose build backend-check web-check
+      - name: Scan secrets, dependencies and base images
+        shell: pwsh
+        run: ./scripts/verify-security.ps1

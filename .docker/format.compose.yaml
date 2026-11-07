@@ -1,0 +1,10 @@
+services:
+  backend-check:
+    volumes:
+      - ./src/DaHub.API:/workspace/src/DaHub.API:rw
+      - ./src/DaHub.Core:/workspace/src/DaHub.Core:rw
+      - ./src/DaHub.Infrastructure:/workspace/src/DaHub.Infrastructure:rw
+      - ./tests:/workspace/tests:rw
+  web-check:
+    volumes:
+      - ./src/dahub-web:/workspace/src/dahub-web:rw
