@@ -28,6 +28,10 @@ try {
         try {
             docker image save --output $archivePath $image
             if ($LASTEXITCODE -ne 0) { throw 'Development image export failed.' }
+            if (-not $IsWindows) {
+                # Docker exports may be owner-only; the non-root scanner reads public tool images.
+                [System.IO.File]::SetUnixFileMode($archivePath, [System.IO.UnixFileMode]::UserRead -bor [System.IO.UnixFileMode]::UserWrite -bor [System.IO.UnixFileMode]::GroupRead -bor [System.IO.UnixFileMode]::OtherRead)
+            }
             $containerPath = '/images/' + [System.IO.Path]::GetFileName($archivePath)
             $reportLines = docker @composeArguments run --rm --no-deps image-scan image --no-progress --input $containerPath --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format json
             $scanExitCode = $LASTEXITCODE
