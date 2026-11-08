@@ -83,12 +83,9 @@ desktop.ini
 *.key
 *.pem
 *.log
-requirements/agents.md
-requirements/all_sprints_wbs_tdd.csv
-requirements/data-model v1.0.md
-requirements/entity-relation-diagram v1.0.html
-requirements/product-requirements-document_v1_0.md
-requirements/software-requirements-specification v1.0.md
+
+# Ignore local development requirements files
+requirements/
 
 # Local HTTPS private material
 .certs/

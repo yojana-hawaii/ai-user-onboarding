@@ -40,3 +40,8 @@ jobs:
       - name: Scan secrets, dependencies and base images
         shell: pwsh
         run: ./scripts/verify-security.ps1
+      - name: Verify SQL Server encryption and restrictions
+        shell: pwsh
+        run: |
+          ./scripts/setup-dev-sql.ps1
+          ./scripts/test-dev-sql-security.ps1
