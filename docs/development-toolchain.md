@@ -15,7 +15,7 @@ Development runs in Docker Desktop Linux containers on this Windows workstation.
 | API integration host | Microsoft.AspNetCore.Mvc.Testing 10.0.0 | Liveness test passes; no SQL or external-service validation |
 | Frontend tests | Angular unit-test builder, Vitest, jsdom | Vitest 4.1.12, jsdom 27.4.0; one component test passes |
 | Formatting | .editorconfig, dotnet format, Prettier | Backend and frontend checks pass; Prettier 3.9.10 |
-| Persistence | SQL Server 2022; planned EF Core 10 SQL Server provider with matching dotnet-ef | Not installed or implemented; exact servicing versions and migration commands need confirmation during database work |
+| Persistence | SQL Server 2022; EF Core SQL Server provider and dotnet-ef 10.0.14 | Initial lookup migration and SQL readiness implemented; see [database foundation](database-foundation.md) for current scope and validation |
 | CI | GitHub Actions on Ubuntu, invoking the same Docker verification script | Workflow prepared; local script passes; hosted execution and branch protections pending |
 
 ## Verification evidence

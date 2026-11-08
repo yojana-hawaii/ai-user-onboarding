@@ -23,6 +23,8 @@ services:
       - ./.github:/repo/.github:ro
       - ./.gitleaks.toml:/repo/.gitleaks.toml:ro
       - ./compose.yaml:/repo/compose.yaml:ro
+      - ./compose.database.yaml:/repo/compose.database.yaml:ro
+      - ./.config:/repo/.config:ro
       - ./compose.security.yaml:/repo/compose.security.yaml:ro
       - ./README.md:/repo/README.md:ro
       - ./CONTRIBUTING.md:/repo/CONTRIBUTING.md:ro

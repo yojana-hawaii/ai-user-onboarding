@@ -1,6 +1,6 @@
 # DaHub development workspace
 
-Angular frontend, ASP.NET Core API, domain/infrastructure libraries and initial tests. Authentication, permissions, database access and employee workflows remain later Sprint 1 work.
+Angular frontend, ASP.NET Core API, domain/infrastructure libraries and initial tests. The first lookup migration and API database readiness are implemented; authentication, permissions and employee workflows remain later Sprint 1 work.
 
 ## Prerequisites
 
@@ -44,7 +44,7 @@ With Docker Desktop running Linux containers, run this once from PowerShell 7:
 
 This builds and starts the patched development image based on pinned Microsoft SQL Server 2022 Developer (licensed for development/testing), waits for a successful SQL login, and creates an empty `DaHub` database if needed. Repeating the command preserves the database and password. After setup, `start-dev.ps1` also starts SQL Server.
 
-Connect from a SQL client using server `localhost,1433`, SQL authentication, login `sa`, and the generated `MSSQL_SA_PASSWORD` in `.env.sql`. Use encryption with **Trust server certificate** for this local container's self-signed certificate. From another service on the Compose network, the server address is `sql,1433`. The password file is excluded from Git and restricted to the current Windows user and SYSTEM. Keep it with the database volume: replacing the file does not reset an existing database login's password. The `sa` account is for local administration; application credentials, API database wiring and schema migrations are still pending.
+Connect from a SQL client using server `localhost,1433`, SQL authentication, login `sa`, and the generated `MSSQL_SA_PASSWORD` in `.env.sql`. Use encryption with **Trust server certificate** for this local container's self-signed certificate. From another service on the Compose network, the server address is `sql,1433`. The password file is excluded from Git and restricted to the current Windows user and SYSTEM. Keep it with the database volume: replacing the file does not reset an existing database login's password. The `sa` account is for local administration; run ./scripts/setup-dev-database.ps1 to apply the first lookup migration and provision a separate restricted API identity. See [database foundation](docs/database-foundation.md) for setup, readiness, rollback and remaining schema work.
 
 ```powershell
 ./scripts/test-dev-sql-security.ps1 # Check required TLS and SQL/container restrictions
@@ -115,11 +115,11 @@ Use main for the reviewed baseline, develop for integration and feature/<task-id
 ## Project layout and remaining work
 
 - src/DaHub.API: HTTP entry point and anonymous process-liveness endpoint.
-- src/DaHub.Core and src/DaHub.Infrastructure: initially empty domain/integration libraries.
+- src/DaHub.Core and src/DaHub.Infrastructure: lookup entities, SQL Server context and versioned EF Core migrations.
 - src/dahub-web: Angular application and HTTPS development proxy.
 - tests/DaHub.Tests.Unit: unit-test structure; domain tests begin with implementation.
 - tests/DaHub.Tests.Integration: in-memory API host and liveness test.
 - scripts/: all environment PowerShell entry points.
 - .docker/: pinned development tool images and explicit formatting override.
 
-Phase 1 requires server-side Okta OIDC with MFA, locally owned authorization, immediate revocation checks, secure session cookies and CSRF protection before employee workflows. Directory/M365 service identities, append-only audit evidence and SQL migrations are still pending. No employee data, production credentials, database migration or production provisioning action is part of this scaffold.
+Phase 1 requires server-side Okta OIDC with MFA, locally owned authorization, immediate revocation checks, secure session cookies and CSRF protection before employee workflows. Directory/M365 service identities, append-only audit evidence and the remaining SQL schema are still pending. No employee data, production credentials, database migration or production provisioning action is part of this scaffold.

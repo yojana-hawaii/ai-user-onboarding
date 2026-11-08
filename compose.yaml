@@ -35,6 +35,7 @@ x-backend: &backend
     - ./DaHub.slnx:/workspace/DaHub.slnx:ro
     - ./Directory.Build.props:/workspace/Directory.Build.props:ro
     - ./global.json:/workspace/global.json:ro
+    - ./.config:/workspace/.config:ro
     - backend_artifacts:/artifacts
     - nuget_secure:/nuget
 
@@ -122,6 +123,22 @@ services:
     <<: *backend
     profiles: [checks]
 
+  database-migrate:
+    <<: *backend
+    profiles: [database-tools]
+    environment:
+      <<: *backend-environment
+      DAHUB_MIGRATION_CONNECTION_FILE: /run/secrets/database_migration
+    secrets: [database_migration]
+    command: sh -c 'dotnet tool restore && dotnet restore src/DaHub.Infrastructure && dotnet ef database update --project src/DaHub.Infrastructure'
+
+  database-check:
+    <<: *backend
+    profiles: [database-checks]
+    env_file:
+      - path: ./.env.sql
+        required: true
+
   web-check:
     <<: *frontend
     profiles: [checks]
@@ -141,6 +158,10 @@ services:
       - npm_cache_secure:/home/node/.npm
 
 secrets:
+  database_connection:
+    file: ./.secrets/database-connection
+  database_migration:
+    file: ./.secrets/database-migration
   tls_certificate:
     file: ./.certs/fullchain.pem
   tls_private_key:

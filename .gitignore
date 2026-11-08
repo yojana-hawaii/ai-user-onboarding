@@ -89,3 +89,4 @@ requirements/
 
 # Local HTTPS private material
 .certs/
+.secrets/

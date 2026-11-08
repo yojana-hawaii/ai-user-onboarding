@@ -1,0 +1,7 @@
+# API-only credential mount, enabled by start-dev.ps1 after database setup.
+services:
+  api:
+    environment:
+      Database__ConnectionStringFile: /run/secrets/database_connection
+    secrets:
+      - database_connection
