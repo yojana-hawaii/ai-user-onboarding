@@ -33,7 +33,7 @@ try {
                 [System.IO.File]::SetUnixFileMode($archivePath, [System.IO.UnixFileMode]::UserRead -bor [System.IO.UnixFileMode]::UserWrite -bor [System.IO.UnixFileMode]::GroupRead -bor [System.IO.UnixFileMode]::OtherRead)
             }
             $containerPath = '/images/' + [System.IO.Path]::GetFileName($archivePath)
-            $reportLines = docker @composeArguments run --rm --no-deps image-scan image --no-progress --input $containerPath --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format json
+            $reportLines = docker @composeArguments run --rm --no-deps image-scan image --no-progress --timeout 20m --input $containerPath --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format json
             $scanExitCode = $LASTEXITCODE
             if ($scanExitCode -notin @(0,1)) { throw "Image scanner failed operationally: $image" }
             $report = ($reportLines -join "`n") | ConvertFrom-Json -AsHashtable -Depth 100
