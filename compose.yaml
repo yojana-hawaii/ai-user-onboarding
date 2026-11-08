@@ -1,0 +1,159 @@
+name: dahub-dev
+
+x-security: &security
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 256
+  cpus: 2.0
+  mem_limit: 2g
+  tmpfs:
+    - /tmp:mode=1777,nosuid,nodev,size=536870912
+
+x-backend: &backend
+  <<: *security
+  build: ./.docker/backend
+  image: dahub-backend-dev:local
+  user: '1654:1654'
+  tmpfs:
+    - /tmp:mode=1777,nosuid,nodev,size=536870912
+    - /run/dahub:uid=1654,gid=1654,mode=0700,nosuid,nodev
+  working_dir: /workspace
+  environment: &backend-environment
+    DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    DOTNET_NOLOGO: '1'
+    DOTNET_CLI_HOME: /tmp/dotnet
+    HOME: /tmp/dotnet
+    XDG_RUNTIME_DIR: /run/dahub
+    NUGET_PACKAGES: /nuget
+    DAHUB_ARTIFACTS_PATH: /artifacts/check
+  volumes:
+    - ./src/DaHub.API:/workspace/src/DaHub.API:ro
+    - ./src/DaHub.Core:/workspace/src/DaHub.Core:ro
+    - ./src/DaHub.Infrastructure:/workspace/src/DaHub.Infrastructure:ro
+    - ./tests:/workspace/tests:ro
+    - ./DaHub.slnx:/workspace/DaHub.slnx:ro
+    - ./Directory.Build.props:/workspace/Directory.Build.props:ro
+    - ./global.json:/workspace/global.json:ro
+    - backend_artifacts:/artifacts
+    - nuget_secure:/nuget
+
+x-frontend: &frontend
+  <<: *security
+  build: ./.docker/frontend
+  image: dahub-frontend-dev:local
+  user: '1000:1000'
+  working_dir: /workspace/src/dahub-web
+  environment:
+    NG_CLI_ANALYTICS: 'false'
+
+services:
+  sql:
+    build: ./.docker/sql
+    image: dahub-sql-dev:local
+    profiles: [database]
+    user: '10001:10001'
+    cap_drop: [ALL]
+    # Microsoft's sqlservr binary carries this file capability.
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 512
+    cpus: 2.0
+    mem_limit: 4g
+    environment:
+      ACCEPT_EULA: 'Y'
+      MSSQL_PID: Developer
+      MSSQL_MEMORY_LIMIT_MB: '2048'
+    env_file:
+      - path: ./.env.sql
+        required: false
+    ports:
+      - '127.0.0.1:1433:1433'
+    volumes:
+      - sql_data:/var/opt/mssql
+      - ./.docker/sql/mssql.conf:/var/opt/mssql/mssql.conf:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'SQLCMDPASSWORD="$$MSSQL_SA_PASSWORD" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -Q "SELECT 1" -o /dev/null']
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+
+  api:
+    <<: *backend
+    command: dotnet run --project src/DaHub.API --no-launch-profile --urls https://0.0.0.0:5081
+    environment:
+      <<: *backend-environment
+      DAHUB_ARTIFACTS_PATH: /artifacts/api
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /run/secrets/tls_certificate
+      ASPNETCORE_Kestrel__Certificates__Default__KeyPath: /run/secrets/tls_private_key
+    ports:
+      - '127.0.0.1:5081:5081'
+    secrets: [tls_certificate, tls_private_key]
+
+  web:
+    <<: *frontend
+    command: sh -c 'npm ci && npm start -- --host 0.0.0.0 --poll 1000 --ssl --ssl-cert /run/secrets/tls_certificate --ssl-key /run/secrets/tls_private_key'
+    environment:
+      NG_CLI_ANALYTICS: 'false'
+      NODE_EXTRA_CA_CERTS: /run/secrets/tls_certificate
+      DAHUB_TLS_SERVER_NAME: ${DAHUB_TLS_SERVER_NAME:-localhost}
+    ports:
+      - '127.0.0.1:4200:4200'
+    secrets: [tls_certificate, tls_private_key]
+    volumes:
+      - ./src/dahub-web/src:/workspace/src/dahub-web/src:ro
+      - ./src/dahub-web/package.json:/workspace/src/dahub-web/package.json:ro
+      - ./src/dahub-web/package-lock.json:/workspace/src/dahub-web/package-lock.json:ro
+      - ./src/dahub-web/angular.json:/workspace/src/dahub-web/angular.json:ro
+      - ./src/dahub-web/proxy.conf.cjs:/workspace/src/dahub-web/proxy.conf.cjs:ro
+      - ./src/dahub-web/tsconfig.json:/workspace/src/dahub-web/tsconfig.json:ro
+      - ./src/dahub-web/tsconfig.app.json:/workspace/src/dahub-web/tsconfig.app.json:ro
+      - ./src/dahub-web/tsconfig.spec.json:/workspace/src/dahub-web/tsconfig.spec.json:ro
+      - ./src/dahub-web/.prettierrc.json:/workspace/src/dahub-web/.prettierrc.json:ro
+      - web_modules_secure:/workspace/src/dahub-web/node_modules
+      - web_cache_secure:/workspace/src/dahub-web/.angular
+      - web_dist_secure:/workspace/src/dahub-web/dist
+      - npm_cache_secure:/home/node/.npm
+    depends_on: [api]
+
+  backend-check:
+    <<: *backend
+    profiles: [checks]
+
+  web-check:
+    <<: *frontend
+    profiles: [checks]
+    volumes:
+      - ./src/dahub-web/src:/workspace/src/dahub-web/src:ro
+      - ./src/dahub-web/package.json:/workspace/src/dahub-web/package.json:ro
+      - ./src/dahub-web/package-lock.json:/workspace/src/dahub-web/package-lock.json:ro
+      - ./src/dahub-web/angular.json:/workspace/src/dahub-web/angular.json:ro
+      - ./src/dahub-web/proxy.conf.cjs:/workspace/src/dahub-web/proxy.conf.cjs:ro
+      - ./src/dahub-web/tsconfig.json:/workspace/src/dahub-web/tsconfig.json:ro
+      - ./src/dahub-web/tsconfig.app.json:/workspace/src/dahub-web/tsconfig.app.json:ro
+      - ./src/dahub-web/tsconfig.spec.json:/workspace/src/dahub-web/tsconfig.spec.json:ro
+      - ./src/dahub-web/.prettierrc.json:/workspace/src/dahub-web/.prettierrc.json:ro
+      - check_modules_secure:/workspace/src/dahub-web/node_modules
+      - check_cache_secure:/workspace/src/dahub-web/.angular
+      - check_dist_secure:/workspace/src/dahub-web/dist
+      - npm_cache_secure:/home/node/.npm
+
+secrets:
+  tls_certificate:
+    file: ./.certs/fullchain.pem
+  tls_private_key:
+    file: ./.certs/privkey.pem
+
+volumes:
+  sql_data:
+  backend_artifacts:
+  nuget_secure:
+  web_modules_secure:
+  web_cache_secure:
+  web_dist_secure:
+  check_modules_secure:
+  check_cache_secure:
+  check_dist_secure:
+  npm_cache_secure:

@@ -1,0 +1,55 @@
+services:
+  secret-scan:
+    image: ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+    profiles: [security]
+    user: '65532:65532'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    tmpfs: ['/tmp:mode=1777,nosuid,nodev']
+    environment:
+      HOME: /tmp
+      GIT_CONFIG_COUNT: '1'
+      GIT_CONFIG_KEY_0: safe.directory
+      GIT_CONFIG_VALUE_0: /repo
+    volumes:
+      - ./.git:/repo/.git:ro
+      - ./src:/repo/src:ro
+      - ./tests:/repo/tests:ro
+      - ./scripts:/repo/scripts:ro
+      - ./docs:/repo/docs:ro
+      - ./.docker:/repo/.docker:ro
+      - ./.github:/repo/.github:ro
+      - ./.gitleaks.toml:/repo/.gitleaks.toml:ro
+      - ./compose.yaml:/repo/compose.yaml:ro
+      - ./compose.security.yaml:/repo/compose.security.yaml:ro
+      - ./README.md:/repo/README.md:ro
+      - ./CONTRIBUTING.md:/repo/CONTRIBUTING.md:ro
+      - ./Directory.Build.props:/repo/Directory.Build.props:ro
+      - ./global.json:/repo/global.json:ro
+      - ./DaHub.slnx:/repo/DaHub.slnx:ro
+      - ./.gitignore:/repo/.gitignore:ro
+      - ./.env.example:/repo/.env.example:ro
+
+  image-scan:
+    build: ./.docker/scanner
+    image: dahub-scanner:local
+    profiles: [security]
+    user: '65532:65532'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    tmpfs: ['/tmp:mode=1777,nosuid,nodev,size=1073741824']
+    environment:
+      TRIVY_CACHE_DIR: /cache/trivy
+      TMPDIR: /cache/tmp
+    volumes:
+      - scanner_cache:/cache
+      - ./.tools/security:/images:ro
+    # Scan exported development images; no Docker socket or credentials are mounted.
+
+
+volumes:
+  scanner_cache:

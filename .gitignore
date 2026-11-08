@@ -55,3 +55,37 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# DaHub development workspace
+# Build output and local tools
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+**/TestResults/
+.tools/
+.vs/
+.idea/
+*.user
+*.suo
+desktop.ini
+
+# Credentials and developer-specific settings
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+*.pfx
+*.p12
+*.key
+*.pem
+*.log
+
+# Ignore local development requirements files
+requirements/
+
+# Local HTTPS private material
+.certs/

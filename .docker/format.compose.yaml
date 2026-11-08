@@ -1,0 +1,18 @@
+services:
+  backend-check:
+    volumes:
+      - ./src/DaHub.API:/workspace/src/DaHub.API:rw
+      - ./src/DaHub.Core:/workspace/src/DaHub.Core:rw
+      - ./src/DaHub.Infrastructure:/workspace/src/DaHub.Infrastructure:rw
+      - ./tests:/workspace/tests:rw
+  web-check:
+    volumes:
+      - ./src/dahub-web/src:/workspace/src/dahub-web/src:rw
+      - ./src/dahub-web/package.json:/workspace/src/dahub-web/package.json:rw
+      - ./src/dahub-web/package-lock.json:/workspace/src/dahub-web/package-lock.json:rw
+      - ./src/dahub-web/angular.json:/workspace/src/dahub-web/angular.json:rw
+      - ./src/dahub-web/proxy.conf.cjs:/workspace/src/dahub-web/proxy.conf.cjs:rw
+      - ./src/dahub-web/tsconfig.json:/workspace/src/dahub-web/tsconfig.json:rw
+      - ./src/dahub-web/tsconfig.app.json:/workspace/src/dahub-web/tsconfig.app.json:rw
+      - ./src/dahub-web/tsconfig.spec.json:/workspace/src/dahub-web/tsconfig.spec.json:rw
+      - ./src/dahub-web/.prettierrc.json:/workspace/src/dahub-web/.prettierrc.json:rw
