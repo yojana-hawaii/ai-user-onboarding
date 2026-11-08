@@ -10,4 +10,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
     <ProjectReference Include="../../src/DaHub.API/DaHub.API.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Fixtures/*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

@@ -49,22 +49,26 @@ public sealed class SqlServerMigrationTests
             await ExecuteAsync(server, $"CREATE DATABASE [{databaseName}]");
             admin.InitialCatalog = databaseName;
             await using var context = CreateContext(admin.ConnectionString);
+            var baseline = context.Database.GetMigrations().First();
+            await context.GetService<IMigrator>().MigrateAsync(baseline);
+            var location = new Location { Name = "Synthetic clinic", SiteCode = "TEST" };
+            context.Locations.Add(location);
+            await context.SaveChangesAsync();
             await context.Database.MigrateAsync();
             await context.Database.MigrateAsync();
             Assert.False(context.Database.HasPendingModelChanges());
-            Assert.Single(await context.Database.GetAppliedMigrationsAsync());
+            Assert.Equal(2, (await context.Database.GetAppliedMigrationsAsync()).Count());
 
             await using var connection = new SqlConnection(admin.ConnectionString);
             await connection.OpenAsync();
             await using (var tables = new SqlCommand(
                 "SELECT COUNT(*) FROM sys.tables WHERE schema_id=SCHEMA_ID('dahub_ita') AND name<>'__EFMigrationsHistory'", connection))
             {
-                Assert.Equal(4, Convert.ToInt32(await tables.ExecuteScalarAsync()));
+                Assert.Equal(31, Convert.ToInt32(await tables.ExecuteScalarAsync()));
             }
 
-            var location = new Location { Name = "Synthetic clinic", SiteCode = "TEST" };
-            context.Locations.Add(location);
-            await context.SaveChangesAsync();
+            Assert.Equal("Synthetic clinic", (await context.Locations.SingleAsync(x => x.SiteCode == "TEST")).Name);
+            await FirstReleaseSchemaAssertions.VerifyAsync(connection);
             Assert.True(location.Id > 0);
             Assert.True(location.IsActive);
             Assert.True(location.CreatedAt > DateTime.UtcNow.AddMinutes(-5));
@@ -86,15 +90,12 @@ public sealed class SqlServerMigrationTests
 
             await ExecuteAsync(server, $"CREATE LOGIN [{login}] WITH PASSWORD=N'{password}', CHECK_POLICY=ON");
             await ExecuteAsync(connection, $"CREATE USER [{login}] FOR LOGIN [{login}]; GRANT CONNECT TO [{login}];");
-            foreach (var table in new[] { "Locations", "Departments", "JobTitles", "Specialties" })
-            {
-                await ExecuteAsync(connection, $"GRANT SELECT,INSERT,UPDATE,DELETE ON OBJECT::dahub_ita.[{table}] TO [{login}]");
-            }
-            await ExecuteAsync(connection, $"GRANT SELECT ON OBJECT::dahub_ita.__EFMigrationsHistory TO [{login}]");
+            await ExecuteAsync(connection, $"ALTER ROLE [dahub_app_runtime] ADD MEMBER [{login}]");
             var runtime = new SqlConnectionStringBuilder(admin.ConnectionString) { UserID = login, Password = password };
             await using (var runtimeContext = CreateContext(DatabaseConnection.Validate(runtime.ConnectionString, true)))
             {
-                Assert.Single(await runtimeContext.Locations.ToListAsync());
+                Assert.Equal(9, await runtimeContext.Locations.CountAsync());
+                await FirstReleaseSchemaAssertions.VerifyRuntimePermissionsAsync(runtimeContext);
                 runtimeContext.Departments.Add(new Department { Name = "Synthetic IT", OUPath = "OU=Synthetic,DC=example,DC=test" });
                 await runtimeContext.SaveChangesAsync();
                 await Assert.ThrowsAsync<SqlException>(() => runtimeContext.Database.ExecuteSqlRawAsync(
@@ -117,6 +118,12 @@ public sealed class SqlServerMigrationTests
                 Assert.Equal(HttpStatusCode.OK, ready.StatusCode);
             }
 
+            // Partial rollback must preserve the original lookup row and avoid duplicate site seeds on upgrade.
+            await context.GetService<IMigrator>().MigrateAsync(baseline);
+            Assert.Equal("Synthetic clinic", (await context.Locations.AsNoTracking().SingleAsync(x => x.SiteCode == "TEST")).Name);
+            await context.Database.MigrateAsync();
+            Assert.Equal(9, await context.Locations.CountAsync());
+
             // Exercise Down on this disposable database, never the developer's DaHub database.
             await context.GetService<IMigrator>().MigrateAsync("0");
             using (var ready = await client.GetAsync("/api/health/ready"))
@@ -128,7 +135,7 @@ public sealed class SqlServerMigrationTests
                 Assert.Equal(HttpStatusCode.OK, live.StatusCode);
             }
             await context.Database.MigrateAsync();
-            Assert.Empty(await context.Locations.ToListAsync());
+            Assert.Equal(8, await context.Locations.CountAsync());
         }
         finally
         {

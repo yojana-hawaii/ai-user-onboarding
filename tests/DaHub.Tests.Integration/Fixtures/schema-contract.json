@@ -1,0 +1,3562 @@
+[
+  {
+    "table": "Locations",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "Name",
+        "type": "nvarchar(150)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Address",
+        "type": "nvarchar(300)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SiteCode",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Phone",
+        "type": "nvarchar(30)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsActive",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "UpdatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [],
+    "checks": [],
+    "foreignKeys": []
+  },
+  {
+    "table": "Departments",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "Name",
+        "type": "nvarchar(100)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "OUPath",
+        "type": "nvarchar(500)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsActive",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "UpdatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [],
+    "checks": [],
+    "foreignKeys": []
+  },
+  {
+    "table": "JobTitles",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "Title",
+        "type": "nvarchar(150)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EHRAccessDefault",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsActive",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "UpdatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [],
+    "checks": [],
+    "foreignKeys": []
+  },
+  {
+    "table": "Specialties",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "Name",
+        "type": "nvarchar(150)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Description",
+        "type": "nvarchar(500)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsActive",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "UpdatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [],
+    "checks": [],
+    "foreignKeys": []
+  },
+  {
+    "table": "AccessTemplates",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "Name",
+        "type": "nvarchar(150)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Description",
+        "type": "nvarchar(500)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "DepartmentId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "LocationId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "JobTitleId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SpecialtyId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "M365LicenseSku",
+        "type": "nvarchar(100)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EHRAccessRequired",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Version",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsActive",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "UpdatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_AccessTemplates_DeptId",
+        "table": "AccessTemplates",
+        "columns": [
+          "DepartmentId"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_AccessTemplates_LocationId",
+        "table": "AccessTemplates",
+        "columns": [
+          "LocationId"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_AccessTemplates_JobTitleId",
+        "table": "AccessTemplates",
+        "columns": [
+          "JobTitleId"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_AccessTemplates_SpecId",
+        "table": "AccessTemplates",
+        "columns": [
+          "SpecialtyId"
+        ]
+      }
+    ],
+    "checks": [],
+    "foreignKeys": [
+      {
+        "name": "FK_AccessTemplates_DepartmentId",
+        "columns": [
+          "DepartmentId"
+        ],
+        "principal": "Departments",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_AccessTemplates_LocationId",
+        "columns": [
+          "LocationId"
+        ],
+        "principal": "Locations",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_AccessTemplates_JobTitleId",
+        "columns": [
+          "JobTitleId"
+        ],
+        "principal": "JobTitles",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_AccessTemplates_SpecialtyId",
+        "columns": [
+          "SpecialtyId"
+        ],
+        "principal": "Specialties",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "AccessTemplateGroups",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "TemplateId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "GroupType",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "GroupName",
+        "type": "nvarchar(300)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "GroupIdentifier",
+        "type": "nvarchar(500)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsRequired",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_ATGroups_TemplateId",
+        "table": "AccessTemplateGroups",
+        "columns": [
+          "TemplateId"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_AccessTemplateGroups_GroupType",
+        "sql": "GroupType IN ('AD_Security','AD_Distribution','Entra_Group')"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_AccessTemplateGroups_TemplateId",
+        "columns": [
+          "TemplateId"
+        ],
+        "principal": "AccessTemplates",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "Employees",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "LegalFirstName",
+        "type": "nvarchar(100)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "LegalLastName",
+        "type": "nvarchar(100)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "PreferredName",
+        "type": "nvarchar(100)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Username",
+        "type": "nvarchar(100)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Email",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ManagerId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EmploymentType",
+        "type": "nvarchar(30)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "StartDate",
+        "type": "date",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EndDate",
+        "type": "date",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "VerificationStatus",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ImportedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "VerifiedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "VerifiedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ADObjectGuid",
+        "type": "uniqueidentifier",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EntraObjectId",
+        "type": "nvarchar(36)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Status",
+        "type": "nvarchar(30)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "UpdatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_Employees_Username",
+        "table": "Employees",
+        "columns": [
+          "Username"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_Employees_Email",
+        "table": "Employees",
+        "columns": [
+          "Email"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_Employees_ManagerId",
+        "table": "Employees",
+        "columns": [
+          "ManagerId"
+        ]
+      },
+      {
+        "unique": true,
+        "name": "UX_Employees_Username",
+        "columns": [
+          "Username"
+        ]
+      },
+      {
+        "unique": true,
+        "name": "UX_Employees_Email",
+        "columns": [
+          "Email"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_Employees_EmploymentType",
+        "sql": "EmploymentType IN ('FT','PT','Contractor','Volunteer','Student','Temporary')"
+      },
+      {
+        "name": "CK_Employees_VerificationStatus",
+        "sql": "VerificationStatus IN ('PendingHR','Verified')"
+      },
+      {
+        "name": "CK_Employees_Status",
+        "sql": "Status IN ('Active','PendingOnboard','Offboarded','Disabled','OnLeave')"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_Employees_ManagerId",
+        "columns": [
+          "ManagerId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "EmployeeLocations",
+    "columns": [
+      {
+        "name": "EmployeeId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "LocationId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsPrimary",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "EmployeeId",
+      "LocationId"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_EmpLoc_LocationId",
+        "table": "EmployeeLocations",
+        "columns": [
+          "LocationId"
+        ]
+      },
+      {
+        "unique": true,
+        "name": "UX_EmpLoc_OnePrimary",
+        "table": "EmployeeLocations",
+        "columns": [
+          "EmployeeId"
+        ],
+        "filter": "IsPrimary = 1"
+      }
+    ],
+    "checks": [],
+    "foreignKeys": [
+      {
+        "name": "FK_EmployeeLocations_EmployeeId",
+        "columns": [
+          "EmployeeId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_EmployeeLocations_LocationId",
+        "columns": [
+          "LocationId"
+        ],
+        "principal": "Locations",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "EmployeeDepartments",
+    "columns": [
+      {
+        "name": "EmployeeId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "DepartmentId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsPrimary",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "EmployeeId",
+      "DepartmentId"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_EmpDept_DepartmentId",
+        "table": "EmployeeDepartments",
+        "columns": [
+          "DepartmentId"
+        ]
+      },
+      {
+        "unique": true,
+        "name": "UX_EmpDept_OnePrimary",
+        "table": "EmployeeDepartments",
+        "columns": [
+          "EmployeeId"
+        ],
+        "filter": "IsPrimary = 1"
+      }
+    ],
+    "checks": [],
+    "foreignKeys": [
+      {
+        "name": "FK_EmployeeDepartments_EmployeeId",
+        "columns": [
+          "EmployeeId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_EmployeeDepartments_DepartmentId",
+        "columns": [
+          "DepartmentId"
+        ],
+        "principal": "Departments",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "EmployeeJobTitles",
+    "columns": [
+      {
+        "name": "EmployeeId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "JobTitleId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsPrimary",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AssignedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AssignedBy",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "EmployeeId",
+      "JobTitleId"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_EmpJobTitles_JobTitleId",
+        "table": "EmployeeJobTitles",
+        "columns": [
+          "JobTitleId"
+        ]
+      },
+      {
+        "unique": true,
+        "name": "UX_EmpJobTitles_OnePrimary",
+        "table": "EmployeeJobTitles",
+        "columns": [
+          "EmployeeId"
+        ],
+        "filter": "IsPrimary = 1"
+      }
+    ],
+    "checks": [],
+    "foreignKeys": [
+      {
+        "name": "FK_EmployeeJobTitles_EmployeeId",
+        "columns": [
+          "EmployeeId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_EmployeeJobTitles_JobTitleId",
+        "columns": [
+          "JobTitleId"
+        ],
+        "principal": "JobTitles",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "EmployeeSpecialties",
+    "columns": [
+      {
+        "name": "EmployeeId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SpecialtyId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsPrimary",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AssignedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AssignedBy",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "EmployeeId",
+      "SpecialtyId"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_EmpSpec_SpecialtyId",
+        "table": "EmployeeSpecialties",
+        "columns": [
+          "SpecialtyId"
+        ]
+      },
+      {
+        "unique": true,
+        "name": "UX_EmpSpec_OnePrimary",
+        "table": "EmployeeSpecialties",
+        "columns": [
+          "EmployeeId"
+        ],
+        "filter": "IsPrimary = 1"
+      }
+    ],
+    "checks": [],
+    "foreignKeys": [
+      {
+        "name": "FK_EmployeeSpecialties_EmployeeId",
+        "columns": [
+          "EmployeeId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_EmployeeSpecialties_SpecialtyId",
+        "columns": [
+          "SpecialtyId"
+        ],
+        "principal": "Specialties",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "AppRoles",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "Name",
+        "type": "nvarchar(50)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Description",
+        "type": "nvarchar(300)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsActive",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": true,
+        "name": "UX_AppRoles_Name",
+        "columns": [
+          "Name"
+        ]
+      }
+    ],
+    "checks": [],
+    "foreignKeys": []
+  },
+  {
+    "table": "AppPermissions",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "Name",
+        "type": "nvarchar(100)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Category",
+        "type": "nvarchar(50)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Description",
+        "type": "nvarchar(300)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsActive",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": true,
+        "name": "UX_AppPermissions_Name",
+        "columns": [
+          "Name"
+        ]
+      }
+    ],
+    "checks": [],
+    "foreignKeys": []
+  },
+  {
+    "table": "AppRolePermissions",
+    "columns": [
+      {
+        "name": "RoleId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "PermissionId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "GrantedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "GrantedBy",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "RoleId",
+      "PermissionId"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_AppRolePerms_PermissionId",
+        "table": "AppRolePermissions",
+        "columns": [
+          "PermissionId"
+        ]
+      }
+    ],
+    "checks": [],
+    "foreignKeys": [
+      {
+        "name": "FK_AppRolePermissions_RoleId",
+        "columns": [
+          "RoleId"
+        ],
+        "principal": "AppRoles",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_AppRolePermissions_PermissionId",
+        "columns": [
+          "PermissionId"
+        ],
+        "principal": "AppPermissions",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "AppUserRoles",
+    "columns": [
+      {
+        "name": "UserId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RoleId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AssignedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AssignedBy",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "UserId",
+      "RoleId"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_AppUserRoles_RoleId",
+        "table": "AppUserRoles",
+        "columns": [
+          "RoleId"
+        ]
+      }
+    ],
+    "checks": [],
+    "foreignKeys": [
+      {
+        "name": "FK_AppUserRoles_UserId",
+        "columns": [
+          "UserId"
+        ],
+        "principal": "AppUsers",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_AppUserRoles_RoleId",
+        "columns": [
+          "RoleId"
+        ],
+        "principal": "AppRoles",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "AppUsers",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "UPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AuthorizationVersion",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "DisplayName",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AppRole",
+        "type": "nvarchar(30)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EmployeeId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsActive",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "LastLoginAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "UpdatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_AppUsers_EmployeeId",
+        "table": "AppUsers",
+        "columns": [
+          "EmployeeId"
+        ]
+      },
+      {
+        "unique": true,
+        "name": "UX_AppUsers_EmployeeId",
+        "table": "AppUsers",
+        "columns": [
+          "EmployeeId"
+        ],
+        "filter": "EmployeeId IS NOT NULL"
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_AppUsers_AuthorizationVersion",
+        "sql": "AuthorizationVersion > 0"
+      },
+      {
+        "name": "CK_AppUsers_AppRole",
+        "sql": "AppRole IN ('HR','IT','Manager','Executive','Admin','Compliance')"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_AppUsers_EmployeeId",
+        "columns": [
+          "EmployeeId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "AppExternalIdentities",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "AppUserId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ProviderKey",
+        "type": "nvarchar(50)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Issuer",
+        "type": "nvarchar(400)",
+        "nullable": false,
+        "identity": false,
+        "collation": "Latin1_General_100_BIN2"
+      },
+      {
+        "name": "Subject",
+        "type": "nvarchar(255)",
+        "nullable": false,
+        "identity": false,
+        "collation": "Latin1_General_100_BIN2"
+      },
+      {
+        "name": "LinkedByUserId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "LinkMethod",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "LinkedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsActive",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RevokedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_AppExternalIdentities_AppUserId",
+        "table": "AppExternalIdentities",
+        "columns": [
+          "AppUserId"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_AppExternalIdentities_LinkMethod",
+        "sql": "LinkMethod IN ('Admin','Bootstrap')"
+      },
+      {
+        "name": "CK_AppExternalIdentities_Validity",
+        "sql": "(LinkMethod = 'Admin' AND LinkedByUserId IS NOT NULL) OR LinkMethod = 'Bootstrap'"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_AppExternalIdentities_AppUserId",
+        "columns": [
+          "AppUserId"
+        ],
+        "principal": "AppUsers",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_AppExternalIdentities_LinkedByUserId",
+        "columns": [
+          "LinkedByUserId"
+        ],
+        "principal": "AppUsers",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "EmployeeAccounts",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "EmployeeId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ADObjectGuid",
+        "type": "uniqueidentifier",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EntraObjectId",
+        "type": "nvarchar(36)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Username",
+        "type": "nvarchar(100)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Email",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "LinkedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RetiredAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": true,
+        "name": "UX_EmployeeAccounts_AD",
+        "table": "EmployeeAccounts",
+        "columns": [
+          "ADObjectGuid"
+        ],
+        "filter": "ADObjectGuid IS NOT NULL"
+      },
+      {
+        "unique": true,
+        "name": "UX_EmployeeAccounts_Entra",
+        "table": "EmployeeAccounts",
+        "columns": [
+          "EntraObjectId"
+        ],
+        "filter": "EntraObjectId IS NOT NULL"
+      }
+    ],
+    "checks": [],
+    "foreignKeys": [
+      {
+        "name": "FK_EmployeeAccounts_EmployeeId",
+        "columns": [
+          "EmployeeId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "EmploymentPeriods",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "EmployeeId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AccountId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EmploymentType",
+        "type": "nvarchar(30)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "StartDate",
+        "type": "date",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EndAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ApprovedEndAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EndApprovedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EndApprovedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AccountDecision",
+        "type": "nvarchar(20)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AccountDecisionByUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AccountDecisionAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [],
+    "checks": [
+      {
+        "name": "CK_EmploymentPeriods_EmploymentType",
+        "sql": "EmploymentType IN ('FT','PT','Contractor','Volunteer','Student','Temporary')"
+      },
+      {
+        "name": "CK_EmploymentPeriods_AccountDecision",
+        "sql": "AccountDecision IN ('Reuse','Replace') OR AccountDecision IS NULL"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_EmploymentPeriods_EmployeeId",
+        "columns": [
+          "EmployeeId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_EmploymentPeriods_AccountId",
+        "columns": [
+          "AccountId"
+        ],
+        "principal": "EmployeeAccounts",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "ApprovalDelegations",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "ManagerEmployeeId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "DelegateUserId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AssignedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "StartsAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EndsAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RevokedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RevokedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [],
+    "checks": [
+      {
+        "name": "CK_ApprovalDelegations_Validity",
+        "sql": "EndsAt > StartsAt"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_ApprovalDelegations_ManagerEmployeeId",
+        "columns": [
+          "ManagerEmployeeId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_ApprovalDelegations_DelegateUserId",
+        "columns": [
+          "DelegateUserId"
+        ],
+        "principal": "AppUsers",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "Requests",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "RequestType",
+        "type": "nvarchar(30)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EmployeeId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SubmittedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AssignedToUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Status",
+        "type": "nvarchar(30)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EmploymentPeriodId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Revision",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ApprovalStatus",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ExecutionStatus",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ResolutionStatus",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IsUrgent",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EffectiveAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ScheduledByUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ScheduledAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "OneDriveRetentionAction",
+        "type": "nvarchar(30)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RetentionRecipientUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "MailboxRetentionDays",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "OneDriveRetentionDays",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RetentionAuthorizedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RetentionAuthorizedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "PreservationConfirmedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EHRRequired",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EHRVerifiedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EHRVerifiedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EHRVerificationEvidence",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ResolvedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ResolvedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ResolutionDetail",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SnapshotJson",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EffectiveDate",
+        "type": "date",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "TerminationType",
+        "type": "nvarchar(30)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "MailboxRetentionAction",
+        "type": "nvarchar(30)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Notes",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ITNotes",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SubmittedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CompletedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "UpdatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_Requests_EmployeeId",
+        "table": "Requests",
+        "columns": [
+          "EmployeeId"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_Requests_Status",
+        "table": "Requests",
+        "columns": [
+          "Status"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_Requests_Type",
+        "table": "Requests",
+        "columns": [
+          "RequestType"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_Requests_SubmittedAt",
+        "table": "Requests",
+        "columns": [
+          "SubmittedAt"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_Requests_RequestType",
+        "sql": "RequestType IN ('Onboarding','Offboarding','Transfer', 'NameUpdate','AccessRequest')"
+      },
+      {
+        "name": "CK_Requests_Status",
+        "sql": "Status IN ('Draft','Submitted','PendingApproval','Approved', 'Rejected','InProgress','Completed','Failed','Cancelled','NeedsResolution')"
+      },
+      {
+        "name": "CK_Requests_Revision",
+        "sql": "Revision > 0"
+      },
+      {
+        "name": "CK_Requests_ApprovalStatus",
+        "sql": "ApprovalStatus IN ('Pending','Approved','Rejected','Preauthorized')"
+      },
+      {
+        "name": "CK_Requests_ExecutionStatus",
+        "sql": "ExecutionStatus IN ('NotStarted','Scheduled','InProgress','Completed','Failed')"
+      },
+      {
+        "name": "CK_Requests_ResolutionStatus",
+        "sql": "ResolutionStatus IN ('None','Required','Resolved')"
+      },
+      {
+        "name": "CK_Requests_OneDriveRetentionAction",
+        "sql": "OneDriveRetentionAction IN ('AssignToManager','Retain','Delete') OR OneDriveRetentionAction IS NULL"
+      },
+      {
+        "name": "CK_Requests_MailboxRetentionDays",
+        "sql": "MailboxRetentionDays >= 0"
+      },
+      {
+        "name": "CK_Requests_OneDriveRetentionDays",
+        "sql": "OneDriveRetentionDays >= 0"
+      },
+      {
+        "name": "CK_Requests_TerminationType",
+        "sql": "TerminationType IN ('Voluntary','Involuntary','Retirement','Deceased') OR TerminationType IS NULL"
+      },
+      {
+        "name": "CK_Requests_MailboxRetentionAction",
+        "sql": "MailboxRetentionAction IN ('ForwardToManager','SharedMailbox','Delete') OR MailboxRetentionAction IS NULL"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_Requests_EmployeeId",
+        "columns": [
+          "EmployeeId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_Requests_EmploymentPeriodId",
+        "columns": [
+          "EmploymentPeriodId"
+        ],
+        "principal": "EmploymentPeriods",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "RequestRevisions",
+    "columns": [
+      {
+        "name": "RequestId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Revision",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SnapshotJson",
+        "type": "nvarchar(max)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ChangeReason",
+        "type": "nvarchar(1000)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "RequestId",
+      "Revision"
+    ],
+    "indexes": [],
+    "checks": [
+      {
+        "name": "CK_RequestRevisions_Revision",
+        "sql": "Revision > 0"
+      },
+      {
+        "name": "CK_RequestRevisions_SnapshotJson",
+        "sql": "ISJSON(SnapshotJson) = 1"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_RequestRevisions_RequestId",
+        "columns": [
+          "RequestId"
+        ],
+        "principal": "Requests",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "UrgentExecutions",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "RequestId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Revision",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ActorUPN",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Justification",
+        "type": "nvarchar(1000)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ActionsJson",
+        "type": "nvarchar(max)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ExecutedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [],
+    "checks": [
+      {
+        "name": "CK_UrgentExecutions_Justification",
+        "sql": "LEN(LTRIM(RTRIM(Justification))) > 0"
+      },
+      {
+        "name": "CK_UrgentExecutions_ActionsJson",
+        "sql": "ISJSON(ActionsJson) = 1"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_UrgentExecutions_RequestId",
+        "columns": [
+          "RequestId"
+        ],
+        "principal": "Requests",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_UrgentExecutions_Revision",
+        "columns": [
+          "RequestId",
+          "Revision"
+        ],
+        "principal": "RequestRevisions",
+        "principalColumns": [
+          "RequestId",
+          "Revision"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "RequestAccessTemplates",
+    "columns": [
+      {
+        "name": "RequestId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "TemplateId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "MatchedOn",
+        "type": "nvarchar(300)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ITApproved",
+        "type": "bit",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "RequestId",
+      "TemplateId"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_ReqAccessTemplates_TemplateId",
+        "table": "RequestAccessTemplates",
+        "columns": [
+          "TemplateId"
+        ]
+      }
+    ],
+    "checks": [],
+    "foreignKeys": [
+      {
+        "name": "FK_RequestAccessTemplates_RequestId",
+        "columns": [
+          "RequestId"
+        ],
+        "principal": "Requests",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_RequestAccessTemplates_TemplateId",
+        "columns": [
+          "TemplateId"
+        ],
+        "principal": "AccessTemplates",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "RequestApprovals",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "RequestId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "DelegatedFromId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Revision",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "OriginalManagerEmployeeId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "DelegationId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ActedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RoutedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ReminderAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SupersededAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ApproverUserId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ActedByUserId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ApproverUPN",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ApproverRole",
+        "type": "nvarchar(50)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EscalationLevel",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Decision",
+        "type": "nvarchar(20)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Comments",
+        "type": "nvarchar(1000)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "DecidedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RemindersSent",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ExpiresAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_Approvals_RequestId",
+        "table": "RequestApprovals",
+        "columns": [
+          "RequestId"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_RequestApprovals_ApproverRole",
+        "sql": "ApproverRole IN ('Manager','Delegate')"
+      },
+      {
+        "name": "CK_RequestApprovals_Decision",
+        "sql": "Decision IN ('Approved','Rejected') OR Decision IS NULL"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_RequestApprovals_RequestId",
+        "columns": [
+          "RequestId"
+        ],
+        "principal": "Requests",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_RequestApprovals_DelegatedFromId",
+        "columns": [
+          "DelegatedFromId"
+        ],
+        "principal": "RequestApprovals",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_RequestApprovals_OriginalManagerEmployeeId",
+        "columns": [
+          "OriginalManagerEmployeeId"
+        ],
+        "principal": "Employees",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_RequestApprovals_DelegationId",
+        "columns": [
+          "DelegationId"
+        ],
+        "principal": "ApprovalDelegations",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_RequestApprovals_ApproverUserId",
+        "columns": [
+          "ApproverUserId"
+        ],
+        "principal": "AppUsers",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_RequestApprovals_ActedByUserId",
+        "columns": [
+          "ActedByUserId"
+        ],
+        "principal": "AppUsers",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_RequestApprovals_Revision",
+        "columns": [
+          "RequestId",
+          "Revision"
+        ],
+        "principal": "RequestRevisions",
+        "principalColumns": [
+          "RequestId",
+          "Revision"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "ProvisioningSteps",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "RequestId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "TemplateId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "StepOrder",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "StepName",
+        "type": "nvarchar(100)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "TargetSystem",
+        "type": "nvarchar(50)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Status",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RetryCount",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ResultDetail",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ExecutedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "StartedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CompletedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_Steps_RequestId",
+        "table": "ProvisioningSteps",
+        "columns": [
+          "RequestId"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_Steps_Status",
+        "table": "ProvisioningSteps",
+        "columns": [
+          "Status"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_Steps_TemplateId",
+        "table": "ProvisioningSteps",
+        "columns": [
+          "TemplateId"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_ProvisioningSteps_TargetSystem",
+        "sql": "TargetSystem IN ('AD','EntraID','M365','Exchange','SysAid','Manual')"
+      },
+      {
+        "name": "CK_ProvisioningSteps_Status",
+        "sql": "Status IN ('Pending','InProgress','Completed','Failed','Skipped')"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_ProvisioningSteps_RequestId",
+        "columns": [
+          "RequestId"
+        ],
+        "principal": "Requests",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_ProvisioningSteps_TemplateId",
+        "columns": [
+          "TemplateId"
+        ],
+        "principal": "AccessTemplates",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "AuditLog",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "bigint",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "RequestId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ProvisioningStepId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ActorUserId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ActorUPN",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ActionType",
+        "type": "nvarchar(80)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "TargetEmployeeUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AffectedSystem",
+        "type": "nvarchar(50)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Result",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "OldValueJson",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "NewValueJson",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Detail",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IPAddress",
+        "type": "nvarchar(45)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "TimestampUTC",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_AuditLog_RequestId",
+        "table": "AuditLog",
+        "columns": [
+          "RequestId"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_AuditLog_Timestamp",
+        "table": "AuditLog",
+        "columns": [
+          "TimestampUTC"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_AuditLog_ActorUPN",
+        "table": "AuditLog",
+        "columns": [
+          "ActorUPN"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_AuditLog_TargetEmpUPN",
+        "table": "AuditLog",
+        "columns": [
+          "TargetEmployeeUPN"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_AuditLog_AffectedSystem",
+        "sql": "AffectedSystem IN ('AD','EntraID','M365','Exchange','SysAid','App') OR AffectedSystem IS NULL"
+      },
+      {
+        "name": "CK_AuditLog_Result",
+        "sql": "Result IN ('Success','Failure','Info')"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_AuditLog_RequestId",
+        "columns": [
+          "RequestId"
+        ],
+        "principal": "Requests",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_AuditLog_ProvisioningStepId",
+        "columns": [
+          "ProvisioningStepId"
+        ],
+        "principal": "ProvisioningSteps",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_AuditLog_ActorUserId",
+        "columns": [
+          "ActorUserId"
+        ],
+        "principal": "AppUsers",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "SysAidTickets",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "RequestId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SysAidSrId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "TicketType",
+        "type": "nvarchar(30)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AssignedToUPN",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Status",
+        "type": "nvarchar(30)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SysAidUrl",
+        "type": "nvarchar(500)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ResolvedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [],
+    "checks": [
+      {
+        "name": "CK_SysAidTickets_TicketType",
+        "sql": "TicketType IN ('EHRProvision','EHRDeprovision','EHRSiteUpdate')"
+      },
+      {
+        "name": "CK_SysAidTickets_Status",
+        "sql": "Status IN ('Open','InProgress','Resolved','Cancelled')"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_SysAidTickets_RequestId",
+        "columns": [
+          "RequestId"
+        ],
+        "principal": "Requests",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "BackgroundJobs",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "bigint",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "JobType",
+        "type": "nvarchar(50)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RequestId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ProvisioningStepId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Payload",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Status",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ScheduledAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "StartedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CompletedAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AttemptCount",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "MaxAttempts",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "LastError",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "CreatedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_BackgroundJobs_Status",
+        "table": "BackgroundJobs",
+        "columns": [
+          "Status"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_BackgroundJobs_ScheduledAt",
+        "table": "BackgroundJobs",
+        "columns": [
+          "ScheduledAt"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_BackgroundJobs_RequestId",
+        "table": "BackgroundJobs",
+        "columns": [
+          "RequestId"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_BackgroundJobs_JobType",
+        "sql": "JobType IN ('ProvisioningRetry','ApprovalReminder','ApprovalEscalation', 'SysAidSync','NotificationRetry','ScheduledTermination','WorkerExpiry','WorkerExpiryNotice')"
+      },
+      {
+        "name": "CK_BackgroundJobs_Status",
+        "sql": "Status IN ('Queued','InProgress','Completed','Failed','Cancelled')"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_BackgroundJobs_RequestId",
+        "columns": [
+          "RequestId"
+        ],
+        "principal": "Requests",
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "name": "FK_BackgroundJobs_ProvisioningStepId",
+        "columns": [
+          "ProvisioningStepId"
+        ],
+        "principal": "ProvisioningSteps",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  },
+  {
+    "table": "AuditLogExports",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "int",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "ExportedByUPN",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ExporterRole",
+        "type": "nvarchar(30)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Format",
+        "type": "nvarchar(10)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "FilterDateFrom",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "FilterDateTo",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "FilterActorUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "FilterTargetUPN",
+        "type": "nvarchar(200)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "FilterActionType",
+        "type": "nvarchar(80)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "RowCount",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "IPAddress",
+        "type": "nvarchar(45)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ExportedAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_AuditLogExports_ExportedByUPN",
+        "table": "AuditLogExports",
+        "columns": [
+          "ExportedByUPN"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_AuditLogExports_ExportedAt",
+        "table": "AuditLogExports",
+        "columns": [
+          "ExportedAt"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_AuditLogExports_ExporterRole",
+        "sql": "ExporterRole IN ('IT','Compliance')"
+      },
+      {
+        "name": "CK_AuditLogExports_Format",
+        "sql": "Format IN ('CSV','PDF')"
+      }
+    ],
+    "foreignKeys": []
+  },
+  {
+    "table": "NotificationLog",
+    "columns": [
+      {
+        "name": "Id",
+        "type": "bigint",
+        "nullable": false,
+        "identity": true,
+        "collation": null
+      },
+      {
+        "name": "RequestId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Channel",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Recipient",
+        "type": "nvarchar(200)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Subject",
+        "type": "nvarchar(300)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "NotificationType",
+        "type": "nvarchar(80)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Status",
+        "type": "nvarchar(20)",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "AttemptCount",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ErrorDetail",
+        "type": "nvarchar(max)",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "SentAt",
+        "type": "datetime2",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "DeliveredAt",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      }
+    ],
+    "keys": [
+      "Id"
+    ],
+    "indexes": [
+      {
+        "unique": false,
+        "name": "IX_NotifLog_RequestId",
+        "table": "NotificationLog",
+        "columns": [
+          "RequestId"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_NotifLog_Recipient",
+        "table": "NotificationLog",
+        "columns": [
+          "Recipient"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_NotifLog_SentAt",
+        "table": "NotificationLog",
+        "columns": [
+          "SentAt"
+        ]
+      },
+      {
+        "unique": false,
+        "name": "IX_NotifLog_Status",
+        "table": "NotificationLog",
+        "columns": [
+          "Status"
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_NotificationLog_Channel",
+        "sql": "Channel IN ('Email','Teams')"
+      },
+      {
+        "name": "CK_NotificationLog_Status",
+        "sql": "Status IN ('Sent','Failed','Retrying')"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "FK_NotificationLog_RequestId",
+        "columns": [
+          "RequestId"
+        ],
+        "principal": "Requests",
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
+  }
+]

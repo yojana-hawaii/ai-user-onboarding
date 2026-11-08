@@ -58,6 +58,8 @@ IF IS_SRVROLEMEMBER(N'sysadmin',N'dahub_app') = 1
 USE [DaHub];
 IF USER_ID(N'dahub_app') IS NULL CREATE USER [dahub_app] FOR LOGIN [dahub_app];
 GRANT CONNECT TO [dahub_app];
+IF ISNULL(IS_ROLEMEMBER(N'dahub_app_runtime',N'dahub_app'),0) = 0
+    ALTER ROLE [dahub_app_runtime] ADD MEMBER [dahub_app];
 GRANT SELECT,INSERT,UPDATE,DELETE ON OBJECT::dahub_ita.Locations TO [dahub_app];
 GRANT SELECT,INSERT,UPDATE,DELETE ON OBJECT::dahub_ita.Departments TO [dahub_app];
 GRANT SELECT,INSERT,UPDATE,DELETE ON OBJECT::dahub_ita.JobTitles TO [dahub_app];
@@ -75,5 +77,5 @@ finally {
     # The migration service uses the administrator secret only for this explicit operation.
     if (Test-Path -LiteralPath $migrationPath) { Remove-Item -LiteralPath $migrationPath -Force }
 }
-Write-Output 'Lookup migrations applied. Dedicated API credentials are protected in .secrets/database-connection.'
+Write-Output 'All first-release schema migrations applied. Dedicated API credentials are protected in .secrets/database-connection.'
 Write-Output 'Run scripts/start-dev.ps1 to start the API with SQL readiness enabled.'
