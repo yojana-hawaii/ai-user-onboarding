@@ -123,3 +123,23 @@ Use main for the reviewed baseline, develop for integration and feature/<task-id
 - .docker/: pinned development tool images and explicit formatting override.
 
 Phase 1 requires server-side Okta OIDC with MFA, locally owned authorization, immediate revocation checks, secure session cookies and CSRF protection before employee workflows. The complete first-release schema includes append-only audit grants; application audit-event generation and Directory/M365 service identities remain pending. Migrations are applied only to the local development database. No employee data, production credentials or production provisioning action is part of this scaffold.
+
+## API documentation and quality checks
+
+Swagger UI is available at https://localhost:5081/swagger and its OpenAPI document at https://localhost:5081/openapi/v1.json when the API runs in Development. Documentation is disabled in Staging and Production. The document describes process liveness and SQL readiness, including readiness failure responses.
+
+Run ./scripts/verify.ps1 for the complete local/CI gate: Release build and .NET analyzers, backend tests with merged coverage, dotnet format, Angular ESLint (including inline-template accessibility rules), production frontend build, Vitest coverage, Prettier and Chromium, Firefox and WebKit browser E2E tests. Docker Desktop is the only runtime prerequisite.
+
+Run ./scripts/test-e2e.ps1 to run just browser tests. It builds a pinned Playwright tools image with matching Chromium, Firefox and WebKit binaries and starts a separate, unpublished HTTP API on a dedicated Compose network. Playwright starts Angular inside the runner and checks the home page, unknown-route redirect, and a browser fetch through the Angular proxy to the real API. It does not use the development TLS private key, SQL credentials, employee data, or production services. Daily development continues to use HTTPS. SQL integration tests remain in ./scripts/test-dev-database.ps1.
+
+Coverage fails verification below 80%:
+- Backend: at least 80% line coverage in every DaHub application assembly, using merged unit and integration results. The minimum assembly result controls the gate. EF-generated migrations, SDK-generated sources and compiler-generated automatic properties are excluded; handwritten configuration, database validation and API code remain included. Migration behavior is checked separately against SQL Server.
+- Frontend: statements, branches, functions and lines, each at 80%, including untested src/app TypeScript files. Test files and the main.ts bootstrap entry point are outside this application-code scope.
+
+Reports persist in Docker volumes: backend JSON/Cobertura under /artifacts/coverage in backend_artifacts, frontend HTML/LCOV/JSON under /workspace/src/dahub-web/coverage in check_coverage, and Playwright HTML/traces/screenshots under /reports in e2e_reports. Compose prefixes volume names with dahub-dev_. Repeated backend runs discard old hits before merging, so stale coverage cannot satisfy the gate. Browser reports retain failure traces and screenshots; the runner exits nonzero on failure and the script stops and removes its E2E API container.
+
+Tool references: [Angular coverage](https://angular.dev/guide/testing/code-coverage), [Coverlet MSBuild](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/MSBuildIntegration.md), [ASP.NET OpenAPI](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0), [Playwright containers](https://playwright.dev/docs/docker).
+
+Browser coverage uses desktop Chrome, Firefox and Safari device profiles. WebKit provides Safari engine coverage; native Safari on macOS remains a release validation step. Linux Playwright execution does not establish native Safari compatibility. Keep the Playwright npm package and Docker image versions aligned when upgrading. See [Playwright browser support](https://playwright.dev/docs/browsers).
+
+For application behavior, follow TDD: write a test that fails for the intended behavior, implement the smallest change that passes, refactor while tests remain green, run the relevant checks, and commit. Backend tests use xUnit; component tests use Angular TestBed/Vitest; browser workflows use Playwright. See CONTRIBUTING.md for security and synthetic-data conventions.

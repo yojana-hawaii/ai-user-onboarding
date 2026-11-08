@@ -35,6 +35,7 @@ x-backend: &backend
     - ./DaHub.slnx:/workspace/DaHub.slnx:ro
     - ./Directory.Build.props:/workspace/Directory.Build.props:ro
     - ./global.json:/workspace/global.json:ro
+    - ./scripts/backend-check.sh:/workspace/scripts/backend-check.sh:ro
     - ./.config:/workspace/.config:ro
     - backend_artifacts:/artifacts
     - nuget_secure:/nuget
@@ -112,6 +113,9 @@ services:
       - ./src/dahub-web/tsconfig.json:/workspace/src/dahub-web/tsconfig.json:ro
       - ./src/dahub-web/tsconfig.app.json:/workspace/src/dahub-web/tsconfig.app.json:ro
       - ./src/dahub-web/tsconfig.spec.json:/workspace/src/dahub-web/tsconfig.spec.json:ro
+      - ./src/dahub-web/eslint.config.mjs:/workspace/src/dahub-web/eslint.config.mjs:ro
+      - ./src/dahub-web/e2e:/workspace/src/dahub-web/e2e:ro
+      - ./src/dahub-web/playwright.config.ts:/workspace/src/dahub-web/playwright.config.ts:ro
       - ./src/dahub-web/.prettierrc.json:/workspace/src/dahub-web/.prettierrc.json:ro
       - web_modules_secure:/workspace/src/dahub-web/node_modules
       - web_cache_secure:/workspace/src/dahub-web/.angular
@@ -151,11 +155,15 @@ services:
       - ./src/dahub-web/tsconfig.json:/workspace/src/dahub-web/tsconfig.json:ro
       - ./src/dahub-web/tsconfig.app.json:/workspace/src/dahub-web/tsconfig.app.json:ro
       - ./src/dahub-web/tsconfig.spec.json:/workspace/src/dahub-web/tsconfig.spec.json:ro
+      - ./src/dahub-web/eslint.config.mjs:/workspace/src/dahub-web/eslint.config.mjs:ro
+      - ./src/dahub-web/e2e:/workspace/src/dahub-web/e2e:ro
+      - ./src/dahub-web/playwright.config.ts:/workspace/src/dahub-web/playwright.config.ts:ro
       - ./src/dahub-web/.prettierrc.json:/workspace/src/dahub-web/.prettierrc.json:ro
       - check_modules_secure:/workspace/src/dahub-web/node_modules
       - check_cache_secure:/workspace/src/dahub-web/.angular
       - check_dist_secure:/workspace/src/dahub-web/dist
       - npm_cache_secure:/home/node/.npm
+      - check_coverage:/workspace/src/dahub-web/coverage
 
 secrets:
   database_connection:
@@ -178,3 +186,5 @@ volumes:
   check_cache_secure:
   check_dist_secure:
   npm_cache_secure:
+
+  check_coverage:

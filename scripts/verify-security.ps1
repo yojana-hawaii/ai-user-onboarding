@@ -21,9 +21,9 @@ try {
 
     $archiveDirectory = Join-Path (Get-Location) '.tools/security'
     New-Item -ItemType Directory -Path $archiveDirectory -Force | Out-Null
-    docker compose build backend-check web-check sql
+    docker compose -f compose.yaml -f compose.e2e.yaml build backend-check web-check sql e2e
     if ($LASTEXITCODE -ne 0) { throw 'Development image build failed.' }
-    foreach ($image in @('dahub-backend-dev:local','dahub-frontend-dev:local','dahub-sql-dev:local')) {
+    foreach ($image in @('dahub-backend-dev:local','dahub-frontend-dev:local','dahub-sql-dev:local','dahub-e2e-dev:local')) {
         $archivePath = Join-Path $archiveDirectory ($image.Replace(':','-') + '.tar')
         try {
             docker image save --output $archivePath $image

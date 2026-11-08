@@ -23,8 +23,10 @@ public sealed class DatabaseReadinessTests
         using var response = await client.GetAsync("/api/health/ready");
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.True(response.Headers.CacheControl?.NoStore);
         Assert.Equal("Unhealthy", await response.Content.ReadAsStringAsync());
         using var live = await client.GetAsync("/api/health/live");
         Assert.Equal(HttpStatusCode.OK, live.StatusCode);
+        Assert.True(live.Headers.CacheControl?.NoStore);
     }
 }
