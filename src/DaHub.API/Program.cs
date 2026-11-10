@@ -1,4 +1,6 @@
 using DaHub.API;
+using DaHub.API.Authentication;
+using Microsoft.AspNetCore.Antiforgery;
 using DaHub.Infrastructure.Persistence;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
+builder.Services.AddDaHubAuthentication(builder.Configuration);
 builder.Services.AddDbContext<DaHubDbContext>(options =>
 {
     var path = builder.Configuration["Database:ConnectionStringFile"];
@@ -21,18 +24,48 @@ builder.Services.AddHealthChecks().AddCheck<DatabaseReadinessCheck>("sql", tags:
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/auth"))
+        context.Response.Headers.CacheControl = "no-store, no-cache";
+    await next(context);
+});
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
     app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "DaHub API v1"));
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api")
+        && !HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method)
+        && !HttpMethods.IsOptions(context.Request.Method))
+    {
+        try
+        {
+            await context.RequestServices.GetRequiredService<IAntiforgery>().ValidateRequestAsync(context);
+        }
+        catch (AntiforgeryValidationException)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            return;
+        }
+    }
+    await next(context);
+});
+app.MapDaHubAuthentication();
+app.MapFallback("{**path}", () => Results.NotFound()).AllowAnonymous();
 
 app.MapGet("/api/health/live", (HttpContext context) =>
 {
     context.Response.Headers.CacheControl = "no-store, no-cache";
     return Results.Text("Healthy");
 })
+    .AllowAnonymous()
     .WithName("Liveness")
     .WithSummary("Checks that the API process is running; does not check dependencies.")
     .Produces<string>(StatusCodes.Status200OK, "text/plain");
@@ -44,6 +77,7 @@ app.MapGet("/api/health/ready", async (HttpContext context, HealthCheckService c
     return Results.Text(report.Status.ToString(), statusCode: report.Status == HealthStatus.Unhealthy
         ? StatusCodes.Status503ServiceUnavailable : StatusCodes.Status200OK);
 })
+    .AllowAnonymous()
     .WithName("Readiness")
     .WithSummary("Checks SQL connectivity and pending migrations; does not check directory or identity providers.")
     .Produces<string>(StatusCodes.Status200OK, "text/plain")

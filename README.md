@@ -1,6 +1,8 @@
 # DaHub development workspace
 
-Angular frontend, ASP.NET Core API, domain/infrastructure libraries and initial tests. All 31 first-release schema tables and API database readiness are implemented; authentication, permissions and employee workflows remain later Sprint 1 work.
+Angular frontend, ASP.NET Core API, domain/infrastructure libraries and initial tests. All 31 first-release schema tables, API database readiness, Okta sign-in and server-side sessions are implemented. Local permission policies and employee workflows remain later Sprint 1 work.
+
+See [Okta setup and session security](docs/authentication.md) to configure the opt-in sign-in integration, enroll verified identities and validate MFA in your tenant. The server-side session store supports one API instance and invalidates sessions on restart; live tenant validation remains required.
 
 ## Prerequisites
 
@@ -106,15 +108,33 @@ The first image scan downloads a vulnerability database into a dedicated Docker 
 
 Local verification on **November 7, 2026** passed backend/frontend builds, one API integration test, one component test, formatting, secret scans and dependency audits. Both development images reported **zero HIGH/CRITICAL findings** after patching the reported vulnerabilities. HTTPS checks passed with certificate validation enabled. This records that verification date, not a guarantee against future advisories.
 
+### Okta/session security verification — November 9, 2026
+
+The complete `./scripts/verify-security.ps1` suite passed locally, including working-tree/fetched-history secret scans (11 commits), transitive NuGet auditing and scans of all four built development images:
+
+| Image | HIGH/CRITICAL findings |
+| --- | --- |
+| `dahub-backend-dev:local` | 0 |
+| `dahub-frontend-dev:local` | 0 |
+| `dahub-sql-dev:local` | 0 |
+| `dahub-e2e-dev:local` | 0 |
+
+The initial npm audit reported 10 moderate lint-tool findings caused by [CVE-2026-118764 / GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249). A scoped npm override replaces affected `minimatch` 10.x with patched 11.0.1, and the lockfile was regenerated. A fresh clean install and full npm audit now report **zero vulnerabilities**. No vulnerability suppression, threshold reduction or ESLint downgrade was used. Revisit the override when the upstream lint dependencies adopt the corrected version.
+
+The Okta implementation passed the full functional gate: 42 backend tests, 8 frontend tests, builds, lint, formatting and coverage thresholds. API line coverage is 94.21%. After the dependency fix, frontend build/lint/formatting, all 8 frontend tests and all 6 Chromium/Firefox/WebKit smoke tests passed again. See [the security record](docs/development-security.md#okta-session-and-dependency-verification--november-9-2026) for scope and evidence.
+
+These are local development results. Live Okta/MFA policy and logout validation, production controls, and hosted CI for the current authentication changes remain outstanding. Sessions support one API instance and expire on restart. The credential-free functional gate skips the real-SQL migration test; separate SQL migration/runtime-security probes were not rerun in this security-only follow-up. Scanning the SQL image does not replace those probes.
+
 GitHub settings were applied and verified on November 2, 2026. At that verification, only one collaborator had write access, so independent approval was not required. Add an eligible reviewer and raise the approval requirement when available. The CI file defines PR/push checks plus a weekly advisory scan. The weekly schedule becomes active after the workflow reaches the default branch. Use the pull request checks and GitHub Actions history to confirm hosted execution; local verification alone does not establish a hosted CI result.
 
-Origin: https://github.com/yojana-hawaii/ai-user-onboarding.git. See [the security change record](docs/development-security.md) for detailed evidence and remaining release controls. Okta authentication, application permissions, session revocation, CSRF protection, audit logging and production secret management remain required before employee workflows or privileged integrations are enabled.
+Origin: https://github.com/yojana-hawaii/ai-user-onboarding.git. See [the security change record](docs/development-security.md) for detailed evidence and remaining release controls. Okta sign-in, local session revocation, CSRF protection and login auditing are implemented; live Okta/MFA verification, application permission policies, broader audit logging and production secret management remain required before employee workflows or privileged integrations are enabled.
 
 Use main for the reviewed baseline, develop for integration and feature/<task-id>-<description> for work. Keep the local requirements/ documents excluded as currently configured. See CONTRIBUTING.md.
 
 ## Project layout and remaining work
 
-- src/DaHub.API: HTTP entry point and anonymous process-liveness endpoint.
+- [AGENTS.md](AGENTS.md): repository agent instructions, security boundaries and verification handoff.
+- src/DaHub.API: HTTP entry point, health endpoints, Okta OIDC and server-side session authentication.
 - src/DaHub.Core and src/DaHub.Infrastructure: first-release entities, SQL Server context and versioned EF Core migrations.
 - src/dahub-web: Angular application and HTTPS development proxy.
 - tests/DaHub.Tests.Unit: unit-test structure; domain tests begin with implementation.
@@ -122,7 +142,7 @@ Use main for the reviewed baseline, develop for integration and feature/<task-id
 - scripts/: all environment PowerShell entry points.
 - .docker/: pinned development tool images and explicit formatting override.
 
-Phase 1 requires server-side Okta OIDC with MFA, locally owned authorization, immediate revocation checks, secure session cookies and CSRF protection before employee workflows. The complete first-release schema includes append-only audit grants; application audit-event generation and Directory/M365 service identities remain pending. Migrations are applied only to the local development database. No employee data, production credentials or production provisioning action is part of this scaffold.
+Phase 1 requires server-side Okta OIDC with MFA, locally owned authorization, immediate revocation checks, secure session cookies and CSRF protection before employee workflows. Authentication now provides secure sessions and next-request account/link/version checks. MFA must be enforced and verified in the configured Okta tenant. Local permission enforcement, audit events beyond login and Directory/M365 service identities remain pending. Migrations are applied only to the local development database. No employee data, production credentials or production provisioning action is part of this scaffold.
 
 ## API documentation and quality checks
 
@@ -143,3 +163,7 @@ Tool references: [Angular coverage](https://angular.dev/guide/testing/code-cover
 Browser coverage uses desktop Chrome, Firefox and Safari device profiles. WebKit provides Safari engine coverage; native Safari on macOS remains a release validation step. Linux Playwright execution does not establish native Safari compatibility. Keep the Playwright npm package and Docker image versions aligned when upgrading. See [Playwright browser support](https://playwright.dev/docs/browsers).
 
 For application behavior, follow TDD: write a test that fails for the intended behavior, implement the smallest change that passes, refactor while tests remain green, run the relevant checks, and commit. Backend tests use xUnit; component tests use Angular TestBed/Vitest; browser workflows use Playwright. See CONTRIBUTING.md for security and synthetic-data conventions.
+
+### PR preparation verification — November 10, 2026
+
+Both complete local gates were repeated after the dependency fix: 42 backend tests, 8 frontend tests and 6 browser smoke tests passed, with all build/lint/format/coverage checks. The complete security suite passed: no source/history secrets (15 fetched commits), no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in each of the four images. Root `AGENTS.md` is included in secret scanning; other `requirements/` files remain ignored. See [the dated verification record](docs/development-security.md#pr-preparation-verification--november-10-2026). Live Okta acceptance and hosted verification remain separate.

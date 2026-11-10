@@ -4,6 +4,8 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { describe, expect, it } from 'vitest';
 import { App } from './app';
 import { routes } from './app.routes';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('Application routing', () => {
   it('renders the application outlet', async () => {
@@ -17,7 +19,9 @@ describe('Application routing', () => {
   });
 
   it('loads the home page and redirects unknown routes', async () => {
-    TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
+    TestBed.configureTestingModule({
+      providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
+    });
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/');
     expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('DaHub');
