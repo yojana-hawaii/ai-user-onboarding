@@ -48,6 +48,10 @@ public sealed class DaHubDbContext(DbContextOptions<DaHubDbContext> options) : D
         modelBuilder.HasDefaultSchema(Schema);
         modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
         SchemaSeeds.Configure(modelBuilder);
+        // Authorization triggers update versions transactionally, including direct SQL maintenance.
+        foreach (var entity in new[] { typeof(AppUser), typeof(AppExternalIdentity), typeof(AppRole),
+                     typeof(AppPermission), typeof(AppUserRole), typeof(AppRolePermission) })
+            modelBuilder.Entity(entity).ToTable(table => table.UseSqlOutputClause(false));
 
         var locations = modelBuilder.Entity<Location>();
         ConfigureLookup(locations, "Locations");

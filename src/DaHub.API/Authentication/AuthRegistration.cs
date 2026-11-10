@@ -1,3 +1,5 @@
+using DaHub.API.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -21,6 +23,11 @@ public static class AuthRegistration
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<ServerTicketStore>();
         services.AddScoped<LocalIdentity>();
+        services.AddScoped<PermissionResolver>();
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        services.AddScoped<IAuthorizationHandler, PermissionHandler>();
+        services.AddScoped<IAuthorizationHandler, AuthorityHandler>();
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationProblemHandler>();
         services.AddAntiforgery(options =>
         {
             options.HeaderName = "X-XSRF-TOKEN";
@@ -29,8 +36,13 @@ public static class AuthRegistration
             options.Cookie.HttpOnly = true;
             options.Cookie.SameSite = SameSiteMode.Strict;
         });
-        services.AddAuthorization(options => options.FallbackPolicy = new AuthorizationPolicyBuilder()
-            .RequireAuthenticatedUser().Build());
+        services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+            foreach (var operation in new[] { "Urgent", "Delegation", "Retention" })
+                options.AddPolicy(operation, policy => policy.RequireAuthenticatedUser()
+                    .AddRequirements(new AuthorityRequirement(operation)));
+        });
 
         var authentication = services.AddAuthentication(CookieScheme).AddCookie(CookieScheme, options =>
         {

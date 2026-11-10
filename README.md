@@ -142,7 +142,7 @@ Use main for the reviewed baseline, develop for integration and feature/<task-id
 - scripts/: all environment PowerShell entry points.
 - .docker/: pinned development tool images and explicit formatting override.
 
-Phase 1 requires server-side Okta OIDC with MFA, locally owned authorization, immediate revocation checks, secure session cookies and CSRF protection before employee workflows. Authentication now provides secure sessions and next-request account/link/version checks. MFA must be enforced and verified in the configured Okta tenant. Local permission enforcement, audit events beyond login and Directory/M365 service identities remain pending. Migrations are applied only to the local development database. No employee data, production credentials or production provisioning action is part of this scaffold.
+Phase 1 requires server-side Okta OIDC with MFA, locally owned authorization, immediate revocation checks, secure session cookies and CSRF protection before employee workflows. Authentication now provides secure sessions and next-request account/link/version checks. MFA must be enforced and verified in the configured Okta tenant. Local permission enforcement is implemented in WBS 1.4; workflow audit events beyond login and Directory/M365 service identities remain pending. Migrations are applied only to the local development database. No employee data, production credentials or production provisioning action is part of this scaffold.
 
 ## API documentation and quality checks
 
@@ -167,3 +167,13 @@ For application behavior, follow TDD: write a test that fails for the intended b
 ### PR preparation verification — November 10, 2026
 
 Both complete local gates were repeated after the dependency fix: 42 backend tests, 8 frontend tests and 6 browser smoke tests passed, with all build/lint/format/coverage checks. The complete security suite passed: no source/history secrets (15 fetched commits), no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in each of the four images. Root `AGENTS.md` is included in secret scanning; other `requirements/` files remain ignored. See [the dated verification record](docs/development-security.md#pr-preparation-verification--november-10-2026). Live Okta acceptance and hosted verification remain separate.
+
+## Local RBAC (Sprint 1, WBS 1.4)
+
+Local active roles resolve to a distinct, additive permission set cached in the server-side session. API permission attributes/policies return 401/403 ProblemDetails; urgency requires both execution and urgent grants, delegation checks the manager's local employee link, and retention requires the separate IT permission. Angular guards check current session permissions and filter navigation. See [RBAC usage and deployment boundaries](docs/authentication.md#local-rbac--wbs-14).
+
+The new `InvalidateAuthorization` migration transactionally increments affected users' authorization versions through SQL triggers, including direct SQL changes. Deploy the migration before the API; old sessions fail closed after authorization changes. Role administration/enrollment, employee workflow execution and its audit/recovery orchestration remain separate work. No persistent development/production database or external identity provider was changed by implementation; SQL verification uses a disposable database.
+
+Local verification passed: 60 backend tests, 12 frontend tests, 6 browser smoke tests, coverage/build/lint/format gates, isolated SQL migration/runtime tests and SQL security checks. The complete security suite passed with no source/history secrets, no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in each of four images. See [the RBAC verification record](docs/development-security.md#sprint-1-wbs-14--local-rbac-november-10-2026) for scope and remaining workflow/release work. These are local working-tree results; hosted CI is not established.
+
+RBAC review is stacked on authentication [PR #22](https://github.com/yojana-hawaii/ai-user-onboarding/pull/22), which depends on [PR #17](https://github.com/yojana-hawaii/ai-user-onboarding/pull/17). Retarget to develop after prerequisites merge. WBS 1.4.2.2 remains open because it asks for permission refresh without re-login; the implemented SRS-permitted behavior denies stale sessions and requires a new sign-in. Preserve that acceptance difference until reconciled.

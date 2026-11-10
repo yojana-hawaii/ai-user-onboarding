@@ -1,4 +1,7 @@
 using System.Net;
+using DaHub.API.Authentication;
+using DaHub.API.Authorization;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using DaHub.Core.Lookups;
 using DaHub.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
@@ -57,7 +60,7 @@ public sealed class SqlServerMigrationTests
             await context.Database.MigrateAsync();
             await context.Database.MigrateAsync();
             Assert.False(context.Database.HasPendingModelChanges());
-            Assert.Equal(2, (await context.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(3, (await context.Database.GetAppliedMigrationsAsync()).Count());
 
             await using var connection = new SqlConnection(admin.ConnectionString);
             await connection.OpenAsync();
@@ -69,6 +72,7 @@ public sealed class SqlServerMigrationTests
 
             Assert.Equal("Synthetic clinic", (await context.Locations.SingleAsync(x => x.SiteCode == "TEST")).Name);
             await FirstReleaseSchemaAssertions.VerifyAsync(connection);
+            await VerifyAuthorizationInvalidationAsync(connection);
             Assert.True(location.Id > 0);
             Assert.True(location.IsActive);
             Assert.True(location.CreatedAt > DateTime.UtcNow.AddMinutes(-5));
@@ -145,6 +149,55 @@ public sealed class SqlServerMigrationTests
         }
     }
 
+    private static async Task VerifyAuthorizationInvalidationAsync(SqlConnection connection)
+    {
+        // Roll back fixtures so the established schema/runtime assertions keep their own data.
+        await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync();
+        async Task Execute(string sql)
+        {
+            await using var command = new SqlCommand(sql, connection, transaction);
+            await command.ExecuteNonQueryAsync();
+        }
+        async Task<int> Version()
+        {
+            await using var command = new SqlCommand("SELECT AuthorizationVersion FROM dahub_ita.AppUsers WHERE DisplayName=N'RBAC synthetic'", connection, transaction);
+            return Convert.ToInt32(await command.ExecuteScalarAsync());
+        }
+        await Execute("INSERT dahub_ita.AppUsers(DisplayName) VALUES(N'RBAC synthetic')");
+        var version = await Version();
+        await Execute("INSERT dahub_ita.AppUserRoles(UserId,RoleId,AssignedBy) SELECT Id,2,N'synthetic' FROM dahub_ita.AppUsers WHERE DisplayName=N'RBAC synthetic'");
+        Assert.Equal(++version, await Version());
+        await Execute("INSERT dahub_ita.AppExternalIdentities(AppUserId,ProviderKey,Issuer,Subject,LinkMethod) SELECT Id,N'Okta',N'https://synthetic.okta.com',N'rbac',N'Bootstrap' FROM dahub_ita.AppUsers WHERE DisplayName=N'RBAC synthetic'");
+        var commands = new List<string>();
+        await using var database = new DaHubDbContext(new DbContextOptionsBuilder<DaHubDbContext>()
+            .UseSqlServer(connection).LogTo(commands.Add, [RelationalEventId.CommandExecuted]).Options);
+        await database.Database.UseTransactionAsync(transaction);
+        var identities = new LocalIdentity(database, TimeProvider.System, new PermissionResolver(database));
+        var principal = await identities.SignInAsync("https://synthetic.okta.com", "rbac", default);
+        Assert.NotNull(principal);
+        Assert.Contains("provisioning.execute", PermissionResolver.Cached(principal));
+        Assert.True(await identities.IsCurrentAsync(principal, default));
+        Assert.Single(commands, command => command.Contains("AppRolePermissions", StringComparison.Ordinal));
+        await Execute("UPDATE dahub_ita.AppRoles SET IsActive=0 WHERE Id=2");
+        Assert.False(await identities.IsCurrentAsync(principal, default));
+        Assert.Single(commands, command => command.Contains("AppRolePermissions", StringComparison.Ordinal));
+        Assert.Equal(++version, await Version());
+        await Execute("UPDATE dahub_ita.AppRoles SET IsActive=1 WHERE Id=2");
+        Assert.Equal(++version, await Version());
+        await Execute("UPDATE dahub_ita.AppPermissions SET IsActive=0 WHERE Name=N'provisioning.execute'");
+        Assert.Equal(++version, await Version());
+        await Execute("DELETE dahub_ita.AppRolePermissions WHERE RoleId=2 AND PermissionId=5");
+        Assert.Equal(++version, await Version());
+        await Execute("UPDATE dahub_ita.AppUsers SET IsActive=0 WHERE DisplayName=N'RBAC synthetic'");
+        Assert.Equal(++version, await Version());
+        await Execute("UPDATE dahub_ita.AppExternalIdentities SET IsActive=0 WHERE Subject=N'rbac'");
+        Assert.Equal(++version, await Version());
+        await Execute("DELETE dahub_ita.AppUserRoles WHERE UserId=(SELECT Id FROM dahub_ita.AppUsers WHERE DisplayName=N'RBAC synthetic')");
+        Assert.Equal(++version, await Version());
+        await transaction.RollbackAsync();
+        await using var rolledBack = new SqlCommand("SELECT COUNT(*) FROM dahub_ita.AppUsers WHERE DisplayName=N'RBAC synthetic'", connection);
+        Assert.Equal(0, Convert.ToInt32(await rolledBack.ExecuteScalarAsync()));
+    }
     private static DaHubDbContext CreateContext(string connection) => new(
         new DbContextOptionsBuilder<DaHubDbContext>()
             .UseSqlServer(connection, sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", DaHubDbContext.Schema)).Options);
