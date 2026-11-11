@@ -1,3 +1,4 @@
+using DaHub.API.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
@@ -21,7 +22,8 @@ public static class AuthEndpoints
         app.MapGet("/api/auth/session", (ClaimsPrincipal user) => Results.Ok(new
         {
             appUserId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!, System.Globalization.CultureInfo.InvariantCulture),
-            displayName = user.Identity!.Name
+            displayName = user.Identity!.Name,
+            permissions = PermissionResolver.Cached(user)
         })).RequireAuthorization();
 
         app.MapGet("/api/auth/antiforgery", (HttpContext context, IAntiforgery antiforgery) =>

@@ -217,6 +217,8 @@ namespace DaHub.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_AppExternalIdentities_Validity", "(LinkMethod = 'Admin' AND LinkedByUserId IS NOT NULL) OR LinkMethod = 'Bootstrap'");
                         });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("DaHub.Core.Entities.AppPermission", b =>
@@ -258,6 +260,8 @@ namespace DaHub.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UX_AppPermissions_Name");
 
                     b.ToTable("AppPermissions", "dahub_ita");
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
 
                     b.HasData(
                         new
@@ -468,6 +472,8 @@ namespace DaHub.Infrastructure.Persistence.Migrations
 
                     b.ToTable("AppRoles", "dahub_ita");
 
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+
                     b.HasData(
                         new
                         {
@@ -551,6 +557,8 @@ namespace DaHub.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_AppRolePerms_PermissionId");
 
                     b.ToTable("AppRolePermissions", "dahub_ita");
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
 
                     b.HasData(
                         new
@@ -891,6 +899,8 @@ namespace DaHub.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_AppUsers_AuthorizationVersion", "AuthorizationVersion > 0");
                         });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("DaHub.Core.Entities.AppUserRole", b =>
@@ -917,6 +927,8 @@ namespace DaHub.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_AppUserRoles_RoleId");
 
                     b.ToTable("AppUserRoles", "dahub_ita");
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("DaHub.Core.Entities.ApprovalDelegation", b =>

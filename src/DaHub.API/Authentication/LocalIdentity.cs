@@ -1,4 +1,5 @@
 using System.Globalization;
+using DaHub.API.Authorization;
 using System.Security.Claims;
 using DaHub.Core.Entities;
 using DaHub.Infrastructure.Persistence;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DaHub.API.Authentication;
 
-public sealed class LocalIdentity(DaHubDbContext database, TimeProvider clock)
+public sealed class LocalIdentity(DaHubDbContext database, TimeProvider clock, PermissionResolver permissions)
 {
     public const string IdentityClaim = "dahub:identity";
     public const string VersionClaim = "dahub:authorization-version";
@@ -34,13 +35,16 @@ public sealed class LocalIdentity(DaHubDbContext database, TimeProvider clock)
         });
         await database.SaveChangesAsync(cancellationToken);
         // Provider groups, email and roles never enter the application principal.
-        return new ClaimsPrincipal(new ClaimsIdentity(new[]
+        var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, record.User.Id.ToString(CultureInfo.InvariantCulture)),
             new Claim(ClaimTypes.Name, record.User.DisplayName),
             new Claim(IdentityClaim, record.Identity.Id.ToString(CultureInfo.InvariantCulture)),
             new Claim(VersionClaim, record.User.AuthorizationVersion.ToString(CultureInfo.InvariantCulture))
-        }, AuthRegistration.CookieScheme));
+        };
+        claims.AddRange((await permissions.ResolveAsync(record.User.Id, cancellationToken))
+            .Select(permission => new Claim(PermissionResolver.PermissionClaim, permission)));
+        return new ClaimsPrincipal(new ClaimsIdentity(claims, AuthRegistration.CookieScheme));
     }
 
     public async Task<bool> IsCurrentAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
