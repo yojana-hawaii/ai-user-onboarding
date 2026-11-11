@@ -13,7 +13,7 @@ public sealed class OpenApiTests
     {
         using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(
             builder => builder.UseEnvironment("Development"));
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
         using var document = JsonDocument.Parse(await client.GetStringAsync("/openapi/v1.json"));
         var operation = document.RootElement.GetProperty("paths").GetProperty("/api/health/live").GetProperty("get");
         Assert.Equal("Liveness", operation.GetProperty("operationId").GetString());
@@ -31,7 +31,7 @@ public sealed class OpenApiTests
     {
         using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(
             builder => builder.UseEnvironment(environment));
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
         foreach (var path in new[] { "/openapi/v1.json", "/swagger/index.html", "/swagger/swagger-ui-bundle.js" })
         {
             using var response = await client.GetAsync(path);

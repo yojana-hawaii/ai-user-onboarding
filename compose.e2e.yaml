@@ -7,6 +7,7 @@ services:
     command: dotnet run --project src/DaHub.API --configuration Release --no-launch-profile --urls http://0.0.0.0:5080
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      Https__AllowDevelopmentHttp: 'true'
       DAHUB_ARTIFACTS_PATH: /artifacts/e2e
     networks: [e2e]
 

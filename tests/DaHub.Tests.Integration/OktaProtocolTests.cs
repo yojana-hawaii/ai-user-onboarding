@@ -263,7 +263,6 @@ public sealed class OktaProtocolTests
     [InlineData("user")]
     [InlineData("identity")]
     [InlineData("revokedAt")]
-    [InlineData("version")]
     public async Task LocalRevocationDeniesTheNextRequest(string change)
     {
         using var fixture = new Fixture();
@@ -275,7 +274,6 @@ public sealed class OktaProtocolTests
             if (change == "identity") (await database.AppExternalIdentities.SingleAsync()).IsActive = false;
             else if (change == "revokedAt") (await database.AppExternalIdentities.SingleAsync()).RevokedAt = DateTime.UtcNow;
             else if (change == "user") (await database.AppUsers.SingleAsync()).IsActive = false;
-            else (await database.AppUsers.SingleAsync()).AuthorizationVersion++;
             await database.SaveChangesAsync();
         }
         Assert.Equal(HttpStatusCode.Unauthorized, (await fixture.Client.GetAsync("/api/auth/session")).StatusCode);

@@ -6,6 +6,7 @@ public sealed class OktaSettings
     public string Issuer { get; set; } = "";
     public string ClientId { get; set; } = "";
     public string ClientSecretFile { get; set; } = "";
+    public string ClientSecret { get; set; } = "";
     public string PublicOrigin { get; set; } = "";
 
     public void Validate()
@@ -18,8 +19,9 @@ public sealed class OktaSettings
             || !string.IsNullOrEmpty(origin.UserInfo)
             || PublicOrigin != origin.GetLeftPart(UriPartial.Authority))
             throw new InvalidOperationException("Okta:PublicOrigin must be an HTTPS origin without a path or trailing slash.");
-        if (string.IsNullOrWhiteSpace(ClientId) || string.IsNullOrWhiteSpace(ClientSecretFile))
-            throw new InvalidOperationException("Okta client ID and client secret file are required.");
+        if (string.IsNullOrWhiteSpace(ClientId)
+            || (string.IsNullOrWhiteSpace(ClientSecretFile) == string.IsNullOrWhiteSpace(ClientSecret)))
+            throw new InvalidOperationException("Okta client ID and exactly one secret source (file or configuration) are required.");
     }
 
     public static bool IsLocalReturn(string value) => value.StartsWith('/')

@@ -83,11 +83,18 @@ services:
 
   api:
     <<: *backend
+    tmpfs:
+      - /tmp:mode=1777,nosuid,nodev,size=536870912
+      - /run/dahub:uid=1654,gid=1654,mode=0700,nosuid,nodev
+      - /logs:uid=1654,gid=1654,mode=0700,nosuid,nodev,size=167772160
     command: dotnet run --project src/DaHub.API --no-launch-profile --urls https://0.0.0.0:5081
     environment:
       <<: *backend-environment
       DAHUB_ARTIFACTS_PATH: /artifacts/api
       ASPNETCORE_ENVIRONMENT: Development
+      Https__Port: '5081'
+      DirectoryHealth__Mode: Mock
+      Logging__Directory: /logs
       ASPNETCORE_Kestrel__Certificates__Default__Path: /run/secrets/tls_certificate
       ASPNETCORE_Kestrel__Certificates__Default__KeyPath: /run/secrets/tls_private_key
     ports:

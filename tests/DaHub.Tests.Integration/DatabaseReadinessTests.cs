@@ -18,13 +18,13 @@ public sealed class DatabaseReadinessTests
                     ["ConnectionStrings:DaHub"] = "",
                     ["Database:ConnectionStringFile"] = ""
                 })));
-        using var client = factory.CreateClient();
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
 
         using var response = await client.GetAsync("/api/health/ready");
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.True(response.Headers.CacheControl?.NoStore);
-        Assert.Equal("Unhealthy", await response.Content.ReadAsStringAsync());
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         using var live = await client.GetAsync("/api/health/live");
         Assert.Equal(HttpStatusCode.OK, live.StatusCode);
         Assert.True(live.Headers.CacheControl?.NoStore);

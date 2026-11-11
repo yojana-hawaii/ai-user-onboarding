@@ -16,7 +16,7 @@ public sealed class LivenessTests : IClassFixture<WebApplicationFactory<Program>
     [Fact]
     public async Task LivenessIsAvailableWithoutExternalServices()
     {
-        using var client = _factory.CreateClient();
+        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
 
         using var response = await client.GetAsync("/api/health/live");
 

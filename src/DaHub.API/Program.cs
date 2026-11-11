@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddProblemDetails();
+builder.AddApiFoundation();
 builder.Services.AddOpenApi();
 builder.Services.AddDaHubAuthentication(builder.Configuration);
 builder.Services.AddDbContext<DaHubDbContext>(options =>
@@ -19,17 +19,11 @@ builder.Services.AddDbContext<DaHubDbContext>(options =>
     options.UseSqlServer(DatabaseConnection.Validate(connection, builder.Environment.IsDevelopment()),
         sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", DaHubDbContext.Schema));
 });
-builder.Services.AddHealthChecks().AddCheck<DatabaseReadinessCheck>("sql", tags: ["ready"]);
+builder.AddDependencyHealth();
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
-app.Use(async (context, next) =>
-{
-    if (context.Request.Path.StartsWithSegments("/api/auth"))
-        context.Response.Headers.CacheControl = "no-store, no-cache";
-    await next(context);
-});
+app.UseApiFoundation();
 
 if (app.Environment.IsDevelopment())
 {
@@ -69,19 +63,20 @@ app.MapGet("/api/health/live", (HttpContext context) =>
     .WithName("Liveness")
     .WithSummary("Checks that the API process is running; does not check dependencies.")
     .Produces<string>(StatusCodes.Status200OK, "text/plain");
-// SQL readiness only; directory/identity-provider readiness comes with those integrations.
+app.MapGet("/health", DependencyHealth.AggregateAsync).AllowAnonymous();
+app.MapGet("/api/health", DependencyHealth.AggregateAsync).AllowAnonymous();
 app.MapGet("/api/health/ready", async (HttpContext context, HealthCheckService checks, CancellationToken cancellationToken) =>
 {
     context.Response.Headers.CacheControl = "no-store, no-cache";
     var report = await checks.CheckHealthAsync(check => check.Tags.Contains("ready"), cancellationToken);
-    return Results.Text(report.Status.ToString(), statusCode: report.Status == HealthStatus.Unhealthy
-        ? StatusCodes.Status503ServiceUnavailable : StatusCodes.Status200OK);
+    return report.Status == HealthStatus.Healthy ? Results.Text(report.Status.ToString())
+        : Results.Problem(statusCode: 503, title: "Service Unavailable", detail: "Database is unavailable or migrations are pending.");
 })
     .AllowAnonymous()
     .WithName("Readiness")
     .WithSummary("Checks SQL connectivity and pending migrations; does not check directory or identity providers.")
     .Produces<string>(StatusCodes.Status200OK, "text/plain")
-    .Produces<string>(StatusCodes.Status503ServiceUnavailable, "text/plain");
+    .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 app.Run();
 
