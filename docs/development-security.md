@@ -77,3 +77,14 @@ Reproduce from PowerShell 7 with Docker Desktop running Linux containers:
 ./scripts/test-dev-sql-security.ps1
 ./scripts/verify-security.ps1
 ```
+## Cross-browser test image — November 8, 2026
+
+The first Ubuntu-based Playwright image failed the HIGH/CRITICAL gate with four HIGH package findings: CVE-2026-109518 in apt/libapt-pkg6.0t64, and CVE-2025-3887 in gstreamer1.0-plugins-bad/libgstreamer-plugins-bad1.0-0. WebKit links the affected codec parser library, so removing the package would break the test engine.
+
+A Debian 13 candidate supplied the corrected GStreamer package (1.26.2-3+deb13u3) and passed all six browser smoke tests, but its image scan reported 291 HIGH/CRITICAL package findings. That candidate was rejected. The final E2E Dockerfile uses the official digest-pinned Playwright Ubuntu 26.04 image while retaining the project's Node 24 runtime. APT and libapt-pkg7.0 are upgraded to the scanner-listed fixed version 3.2.1ubuntu0.1. See the [Debian CVE record](https://security-tracker.debian.org/tracker/CVE-2025-3887) and [Playwright supported systems](https://playwright.dev/docs/intro#system-requirements). Runtime tests retain the non-root user, read-only source/root filesystem, dropped capabilities, writable temporary browser profiles, and dedicated network without published ports or secret mounts.
+
+Security verification includes backend, frontend, SQL and E2E images. Public image archives are copied once into Docker-local scanner storage before analysis to avoid slow Windows bind-mount access, and host/cache copies are removed afterward. The scanner receives exported images rather than a Docker socket or credentials. Its 20-minute operational timeout accommodates the larger browser image; the HIGH/CRITICAL failure threshold remains enforced.
+
+Verified locally on November 8, 2026 (Pacific/Honolulu): the complete updated verify-security.ps1 command passed. Working-tree/history secret scans and NuGet audit passed; npm reported no HIGH/CRITICAL findings and 15 moderate lint-tool dependency findings. Backend, frontend, SQL and the final E2E image each reported zero HIGH/CRITICAL findings. All six Chromium/Firefox/WebKit smoke tests passed again on the final APT-patched image. SQL encryption/container checks and the isolated migration/runtime-permission test also passed. No vulnerability exception was added.
+
+GitHub inspection during this work found main protected and develop unprotected. The new PR targets develop, so failing checks are not yet an enforced merge blocker there. This observation is tracked in the Notion lint/CI records.

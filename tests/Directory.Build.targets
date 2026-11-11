@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <CoverletOutputFormat>json,cobertura</CoverletOutputFormat>
+    <Include>[DaHub.*]*</Include>
+    <!-- Exclude EF migrations (validated by the SQL suite) and SDK-generated sources. -->
+    <ExcludeByFile>**/Migrations/*.cs,**/*.generated.cs</ExcludeByFile>
+    <SkipAutoProps>true</SkipAutoProps>
+    <ThresholdType>line</ThresholdType>
+    <ThresholdStat>minimum</ThresholdStat>
+  </PropertyGroup>
+</Project>

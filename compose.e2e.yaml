@@ -1,0 +1,45 @@
+services:
+  e2e-api:
+    extends:
+      file: compose.yaml
+      service: backend-check
+    profiles: [e2e]
+    command: dotnet run --project src/DaHub.API --configuration Release --no-launch-profile --urls http://0.0.0.0:5080
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DAHUB_ARTIFACTS_PATH: /artifacts/e2e
+    networks: [e2e]
+
+  e2e:
+    extends:
+      file: compose.yaml
+      service: web-check
+    profiles: [e2e]
+    build:
+      context: ./.docker/e2e
+    image: dahub-e2e-dev:local
+    environment:
+      HOME: /tmp/pwuser
+      XDG_CONFIG_HOME: /tmp/pwuser/config
+      XDG_CACHE_HOME: /tmp/pwuser/cache
+      XDG_RUNTIME_DIR: /tmp/pwuser/runtime
+    init: true
+    mem_limit: 3g
+    pids_limit: 512
+    tmpfs:
+      - /tmp:mode=1777,nosuid,nodev,size=1073741824
+    command: sh -c 'mkdir -p /tmp/pwuser/runtime && chmod 700 /tmp/pwuser/runtime && npm ci --no-audit --no-fund && npm run test:e2e'
+    volumes:
+      - e2e_modules:/workspace/src/dahub-web/node_modules
+      - e2e_cache:/workspace/src/dahub-web/.angular
+      - e2e_reports:/reports
+    depends_on: [e2e-api]
+    networks: [e2e]
+
+networks:
+  e2e:
+
+volumes:
+  e2e_modules:
+  e2e_cache:
+  e2e_reports:

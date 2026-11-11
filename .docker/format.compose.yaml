@@ -16,3 +16,7 @@ services:
       - ./src/dahub-web/tsconfig.app.json:/workspace/src/dahub-web/tsconfig.app.json:rw
       - ./src/dahub-web/tsconfig.spec.json:/workspace/src/dahub-web/tsconfig.spec.json:rw
       - ./src/dahub-web/.prettierrc.json:/workspace/src/dahub-web/.prettierrc.json:rw
+
+      - ./src/dahub-web/eslint.config.mjs:/workspace/src/dahub-web/eslint.config.mjs:rw
+      - ./src/dahub-web/playwright.config.ts:/workspace/src/dahub-web/playwright.config.ts:rw
+      - ./src/dahub-web/e2e:/workspace/src/dahub-web/e2e:rw

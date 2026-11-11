@@ -1,6 +1,6 @@
 # DaHub development workspace
 
-Angular frontend, ASP.NET Core API, domain/infrastructure libraries and initial tests. Authentication, permissions, database access and employee workflows remain later Sprint 1 work.
+Angular frontend, ASP.NET Core API, domain/infrastructure libraries and initial tests. All 31 first-release schema tables and API database readiness are implemented; authentication, permissions and employee workflows remain later Sprint 1 work.
 
 ## Prerequisites
 
@@ -44,7 +44,7 @@ With Docker Desktop running Linux containers, run this once from PowerShell 7:
 
 This builds and starts the patched development image based on pinned Microsoft SQL Server 2022 Developer (licensed for development/testing), waits for a successful SQL login, and creates an empty `DaHub` database if needed. Repeating the command preserves the database and password. After setup, `start-dev.ps1` also starts SQL Server.
 
-Connect from a SQL client using server `localhost,1433`, SQL authentication, login `sa`, and the generated `MSSQL_SA_PASSWORD` in `.env.sql`. Use encryption with **Trust server certificate** for this local container's self-signed certificate. From another service on the Compose network, the server address is `sql,1433`. The password file is excluded from Git and restricted to the current Windows user and SYSTEM. Keep it with the database volume: replacing the file does not reset an existing database login's password. The `sa` account is for local administration; application credentials, API database wiring and schema migrations are still pending.
+Connect from a SQL client using server `localhost,1433`, SQL authentication, login `sa`, and the generated `MSSQL_SA_PASSWORD` in `.env.sql`. Use encryption with **Trust server certificate** for this local container's self-signed certificate. From another service on the Compose network, the server address is `sql,1433`. The password file is excluded from Git and restricted to the current Windows user and SYSTEM. Keep it with the database volume: replacing the file does not reset an existing database login's password. The `sa` account is for local administration; run ./scripts/setup-dev-database.ps1 to apply the first-release schema migrations and provision a separate restricted API identity. See [database foundation](docs/database-foundation.md) for setup, readiness, rollback and remaining service work.
 
 ```powershell
 ./scripts/test-dev-sql-security.ps1 # Check required TLS and SQL/container restrictions
@@ -87,7 +87,7 @@ The following development-environment controls have been applied:
 | Source and secret isolation | Mount specific application source paths read-only; exclude root .env files and Git metadata from application containers. Give only the running API/frontend their read-only certificate/key mounts. Keep build outputs and caches in writable volumes. | [Container boundaries](#container-boundaries), [.gitignore](.gitignore) |
 | HTTPS and certificates | Bind HTTPS listeners to loopback; verify the API certificate and hostname in the proxy. Protect host key files with Windows ACLs. Check certificate expiry, rotate managed certificates, roll back failed replacements, and remove old trust entries and stored keys. | [Certificate maintenance](#certificate-maintenance), [proxy.conf.cjs](src/dahub-web/proxy.conf.cjs) |
 | Supply chain | Pin checkout by commit and base/scanner images by digest. Apply the Ubuntu Brotli/APT fixes and patch npm's bundled Undici dependency. Configure Dependabot for npm, NuGet, Dockerfiles, Compose and Actions. | [.docker/backend/Dockerfile](.docker/backend/Dockerfile), [.docker/frontend/Dockerfile](.docker/frontend/Dockerfile), [dependabot.yml](.github/dependabot.yml) |
-| Security gates | Scan source and fetched Git history with redacted findings; audit transitive NuGet dependencies and the frontend lockfile; scan actual built backend/frontend/SQL images. Fail on NuGet advisories, npm HIGH/CRITICAL findings, image HIGH/CRITICAL findings, or scanner errors. No blanket vulnerability exceptions are configured. | [verify-security.ps1](scripts/verify-security.ps1), [compose.security.yaml](compose.security.yaml), [.gitleaks.toml](.gitleaks.toml) |
+| Security gates | Scan source and fetched Git history with redacted findings; audit transitive NuGet dependencies and the frontend lockfile; scan actual built backend/frontend/SQL/E2E images. Fail on NuGet advisories, npm HIGH/CRITICAL findings, image HIGH/CRITICAL findings, or scanner errors. No blanket vulnerability exceptions are configured. | [verify-security.ps1](scripts/verify-security.ps1), [compose.security.yaml](compose.security.yaml), [.gitleaks.toml](.gitleaks.toml) |
 | Repository protections | Enable secret scanning, push protection and Dependabot security updates. Use read-only workflow tokens and disable workflow PR approvals. Protect main with required PRs, current build/security checks, resolved conversations and linear history; include admins and disable force pushes/deletion. | [configure-github-security.ps1](scripts/configure-github-security.ps1) |
 
 Run the checks from the workspace root:
@@ -115,11 +115,31 @@ Use main for the reviewed baseline, develop for integration and feature/<task-id
 ## Project layout and remaining work
 
 - src/DaHub.API: HTTP entry point and anonymous process-liveness endpoint.
-- src/DaHub.Core and src/DaHub.Infrastructure: initially empty domain/integration libraries.
+- src/DaHub.Core and src/DaHub.Infrastructure: first-release entities, SQL Server context and versioned EF Core migrations.
 - src/dahub-web: Angular application and HTTPS development proxy.
 - tests/DaHub.Tests.Unit: unit-test structure; domain tests begin with implementation.
 - tests/DaHub.Tests.Integration: in-memory API host and liveness test.
 - scripts/: all environment PowerShell entry points.
 - .docker/: pinned development tool images and explicit formatting override.
 
-Phase 1 requires server-side Okta OIDC with MFA, locally owned authorization, immediate revocation checks, secure session cookies and CSRF protection before employee workflows. Directory/M365 service identities, append-only audit evidence and SQL migrations are still pending. No employee data, production credentials, database migration or production provisioning action is part of this scaffold.
+Phase 1 requires server-side Okta OIDC with MFA, locally owned authorization, immediate revocation checks, secure session cookies and CSRF protection before employee workflows. The complete first-release schema includes append-only audit grants; application audit-event generation and Directory/M365 service identities remain pending. Migrations are applied only to the local development database. No employee data, production credentials or production provisioning action is part of this scaffold.
+
+## API documentation and quality checks
+
+Swagger UI is available at https://localhost:5081/swagger and its OpenAPI document at https://localhost:5081/openapi/v1.json when the API runs in Development. Documentation is disabled in Staging and Production. The document describes process liveness and SQL readiness, including readiness failure responses.
+
+Run ./scripts/verify.ps1 for the complete local/CI gate: Release build and .NET analyzers, backend tests with merged coverage, dotnet format, Angular ESLint (including inline-template accessibility rules), production frontend build, Vitest coverage, Prettier and Chromium, Firefox and WebKit browser E2E tests. Docker Desktop is the only runtime prerequisite.
+
+Run ./scripts/test-e2e.ps1 to run just browser tests. It builds a pinned Playwright tools image with matching Chromium, Firefox and WebKit binaries and starts a separate, unpublished HTTP API on a dedicated Compose network. Playwright starts Angular inside the runner and checks the home page, unknown-route redirect, and a browser fetch through the Angular proxy to the real API. It does not use the development TLS private key, SQL credentials, employee data, or production services. Daily development continues to use HTTPS. SQL integration tests remain in ./scripts/test-dev-database.ps1.
+
+Coverage fails verification below 80%:
+- Backend: at least 80% line coverage in every DaHub application assembly, using merged unit and integration results. The minimum assembly result controls the gate. EF-generated migrations, SDK-generated sources and compiler-generated automatic properties are excluded; handwritten configuration, database validation and API code remain included. Migration behavior is checked separately against SQL Server.
+- Frontend: statements, branches, functions and lines, each at 80%, including untested src/app TypeScript files. Test files and the main.ts bootstrap entry point are outside this application-code scope.
+
+Reports persist in Docker volumes: backend JSON/Cobertura under /artifacts/coverage in backend_artifacts, frontend HTML/LCOV/JSON under /workspace/src/dahub-web/coverage in check_coverage, and Playwright HTML/traces/screenshots under /reports in e2e_reports. Compose prefixes volume names with dahub-dev_. Repeated backend runs discard old hits before merging, so stale coverage cannot satisfy the gate. Browser reports retain failure traces and screenshots; the runner exits nonzero on failure and the script stops and removes its E2E API container.
+
+Tool references: [Angular coverage](https://angular.dev/guide/testing/code-coverage), [Coverlet MSBuild](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/MSBuildIntegration.md), [ASP.NET OpenAPI](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/aspnetcore-openapi?view=aspnetcore-10.0), [Playwright containers](https://playwright.dev/docs/docker).
+
+Browser coverage uses desktop Chrome, Firefox and Safari device profiles. WebKit provides Safari engine coverage; native Safari on macOS remains a release validation step. Linux Playwright execution does not establish native Safari compatibility. Keep the Playwright npm package and Docker image versions aligned when upgrading. See [Playwright browser support](https://playwright.dev/docs/browsers).
+
+For application behavior, follow TDD: write a test that fails for the intended behavior, implement the smallest change that passes, refactor while tests remain green, run the relevant checks, and commit. Backend tests use xUnit; component tests use Angular TestBed/Vitest; browser workflows use Playwright. See CONTRIBUTING.md for security and synthetic-data conventions.
