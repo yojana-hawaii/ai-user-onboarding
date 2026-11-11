@@ -132,7 +132,7 @@ public sealed class SafeExceptionHandler : IExceptionHandler
             ProblemDetails = new ProblemDetails
             {
                 Status = status,
-                Title = status == 500 ? "Internal Server Error" : "Bad Request",
+                Title = Microsoft.AspNetCore.WebUtilities.ReasonPhrases.GetReasonPhrase(status),
                 Detail = "The request could not be completed."
             }
         });

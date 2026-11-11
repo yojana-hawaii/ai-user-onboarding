@@ -61,14 +61,16 @@ public sealed class LocalIdentity(DaHubDbContext database, TimeProvider clock, P
             || !int.TryParse(principal.FindFirstValue(VersionClaim), out var version)
             || string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(subject))
             return null;
-        var user = await (from identity in database.AppExternalIdentities.AsNoTracking()
-                          join account in database.AppUsers.AsNoTracking() on identity.AppUserId equals account.Id
-                          where identity.Id == identityId && identity.AppUserId == userId
-                              && identity.Issuer == issuer && identity.Subject == subject
-                              && identity.ProviderKey == "Okta" && identity.IsActive && identity.RevokedAt == null && account.IsActive
-                          select account).SingleOrDefaultAsync(cancellationToken);
-        if (user is null)
+        var record = await (from identity in database.AppExternalIdentities.AsNoTracking()
+                            join account in database.AppUsers.AsNoTracking() on identity.AppUserId equals account.Id
+                            where identity.Id == identityId && identity.AppUserId == userId
+                                && identity.Issuer == issuer && identity.Subject == subject
+                                && identity.ProviderKey == "Okta" && identity.IsActive && identity.RevokedAt == null && account.IsActive
+                            select new { User = account, identity.Issuer, identity.Subject }).SingleOrDefaultAsync(cancellationToken);
+        // SQL equality ignores trailing spaces, including with BIN2 collation.
+        if (record is null || record.Issuer != issuer || record.Subject != subject)
             return null;
+        var user = record.User;
         if (user.AuthorizationVersion == version)
             return principal;
 
@@ -98,12 +100,13 @@ public sealed class LocalIdentity(DaHubDbContext database, TimeProvider clock, P
             || !int.TryParse(principal.FindFirstValue(VersionClaim), out var version)
             || string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(subject))
             return false;
-        return await (from identity in database.AppExternalIdentities.AsNoTracking()
-                      join user in database.AppUsers.AsNoTracking() on identity.AppUserId equals user.Id
-                      where identity.Id == identityId && identity.AppUserId == userId
-                          && identity.Issuer == issuer && identity.Subject == subject
-                          && identity.ProviderKey == "Okta" && identity.IsActive && identity.RevokedAt == null
-                          && user.IsActive && user.AuthorizationVersion == version
-                      select user.Id).AnyAsync(cancellationToken);
+        var binding = await (from identity in database.AppExternalIdentities.AsNoTracking()
+                             join user in database.AppUsers.AsNoTracking() on identity.AppUserId equals user.Id
+                             where identity.Id == identityId && identity.AppUserId == userId
+                                 && identity.Issuer == issuer && identity.Subject == subject
+                                 && identity.ProviderKey == "Okta" && identity.IsActive && identity.RevokedAt == null
+                                 && user.IsActive && user.AuthorizationVersion == version
+                             select new { identity.Issuer, identity.Subject }).SingleOrDefaultAsync(cancellationToken);
+        return binding is not null && binding.Issuer == issuer && binding.Subject == subject;
     }
 }

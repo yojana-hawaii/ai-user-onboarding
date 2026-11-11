@@ -41,7 +41,7 @@ SQL readiness at https://localhost:5081/api/health/ready (also through the front
 
 ## Migrations and rollback
 
-The two C# migrations and model snapshot are the schema source of truth. To scaffold a later migration using the deliberate source-write override:
+The checked-in C# migrations and model snapshot are the schema source of truth. Apply all outstanding migrations before deploying the API, including `InvalidatePermissionKeyChanges`, which corrects permission-name invalidation for trailing-space edits without changing the EF model. To scaffold a later migration using the deliberate source-write override:
 
 ```powershell
 docker compose -f compose.yaml -f .docker/format.compose.yaml run --rm --no-deps backend-check sh -c 'dotnet restore src/DaHub.Infrastructure && dotnet tool restore && dotnet ef migrations add MigrationName --project src/DaHub.Infrastructure --output-dir Persistence/Migrations'

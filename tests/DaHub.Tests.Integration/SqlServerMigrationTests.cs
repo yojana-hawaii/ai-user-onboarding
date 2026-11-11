@@ -60,7 +60,7 @@ public sealed class SqlServerMigrationTests
             await context.Database.MigrateAsync();
             await context.Database.MigrateAsync();
             Assert.False(context.Database.HasPendingModelChanges());
-            Assert.Equal(3, (await context.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(4, (await context.Database.GetAppliedMigrationsAsync()).Count());
 
             await using var connection = new SqlConnection(admin.ConnectionString);
             await connection.OpenAsync();
@@ -178,18 +178,34 @@ public sealed class SqlServerMigrationTests
         Assert.Contains("provisioning.execute", PermissionResolver.Cached(principal));
         Assert.True(await identities.IsCurrentAsync(principal, default));
         Assert.Single(commands, command => command.Contains("AppRolePermissions", StringComparison.Ordinal));
+        // SQL string equality pads trailing spaces even under BIN2 collation.
+        foreach (var claimType in new[] { LocalIdentity.IssuerClaim, LocalIdentity.SubjectClaim })
+        {
+            var padded = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(principal.Identity));
+            var identity = (System.Security.Claims.ClaimsIdentity)padded.Identity!;
+            var original = identity.FindFirst(claimType)!;
+            identity.RemoveClaim(original);
+            identity.AddClaim(new System.Security.Claims.Claim(claimType, original.Value + " "));
+            Assert.False(await identities.IsCurrentAsync(padded, default));
+            Assert.Null(await identities.RefreshAsync(padded, default));
+        }
         // Direct maintenance can change alternate-key values even though EF forbids tracked key edits.
         foreach (var edit in new[]
         {
             "UPDATE dahub_ita.AppExternalIdentities SET Issuer=N'https://other-synthetic.okta.com' WHERE Subject=N'rbac'",
             "UPDATE dahub_ita.AppExternalIdentities SET Issuer=N'https://synthetic.okta.com' WHERE Subject=N'rbac'",
             "UPDATE dahub_ita.AppExternalIdentities SET Subject=N'RBAC' WHERE Subject=N'rbac'",
-            "UPDATE dahub_ita.AppExternalIdentities SET Subject=N'rbac' WHERE Subject=N'RBAC'"
+            "UPDATE dahub_ita.AppExternalIdentities SET Subject=N'rbac' WHERE Subject=N'RBAC'",
+            "UPDATE dahub_ita.AppExternalIdentities SET Subject=N'rbac ' WHERE Subject=N'rbac'",
+            "UPDATE dahub_ita.AppExternalIdentities SET Subject=N'rbac' WHERE Subject=N'rbac '",
+            "UPDATE dahub_ita.AppExternalIdentities SET Issuer=N'https://synthetic.okta.com ' WHERE Subject=N'rbac'",
+            "UPDATE dahub_ita.AppExternalIdentities SET Issuer=N'https://synthetic.okta.com' WHERE Subject=N'rbac'"
         })
         {
             await Execute(edit);
             Assert.Equal(++version, await Version());
-            if (edit.Contains("other-synthetic", StringComparison.Ordinal) || edit.Contains("SET Subject=N'RBAC'", StringComparison.Ordinal))
+            if (edit.Contains("other-synthetic", StringComparison.Ordinal) || edit.Contains("SET Subject=N'RBAC'", StringComparison.Ordinal)
+                || edit.Contains("SET Subject=N'rbac '", StringComparison.Ordinal) || edit.Contains("SET Issuer=N'https://synthetic.okta.com '", StringComparison.Ordinal))
                 Assert.Null(await identities.RefreshAsync(principal, default));
         }
         Assert.Single(commands, command => command.Contains("AppRolePermissions", StringComparison.Ordinal));
@@ -204,6 +220,12 @@ public sealed class SqlServerMigrationTests
         Assert.Same(refreshed, await identities.RefreshAsync(refreshed, default));
         Assert.Equal(2, commands.Count(command => command.Contains("AppRolePermissions", StringComparison.Ordinal)));
         Assert.Equal(++version, await Version());
+        foreach (var name in new[] { "provisioning.execute ", "provisioning.execute" })
+        {
+            await Execute($"UPDATE dahub_ita.AppPermissions SET Name=N'{name}' WHERE Name=N'provisioning.execute'");
+            Assert.Equal(++version, await Version());
+            Assert.False(await identities.IsCurrentAsync(refreshed, default));
+        }
         await Execute("UPDATE dahub_ita.AppRoles SET IsActive=1 WHERE Id=2");
         Assert.Equal(++version, await Version());
         await Execute("UPDATE dahub_ita.AppPermissions SET IsActive=0 WHERE Name=N'provisioning.execute'");
