@@ -88,3 +88,49 @@ Security verification includes backend, frontend, SQL and E2E images. Public ima
 Verified locally on November 8, 2026 (Pacific/Honolulu): the complete updated verify-security.ps1 command passed. Working-tree/history secret scans and NuGet audit passed; npm reported no HIGH/CRITICAL findings and 15 moderate lint-tool dependency findings. Backend, frontend, SQL and the final E2E image each reported zero HIGH/CRITICAL findings. All six Chromium/Firefox/WebKit smoke tests passed again on the final APT-patched image. SQL encryption/container checks and the isolated migration/runtime-permission test also passed. No vulnerability exception was added.
 
 GitHub inspection during this work found main protected and develop unprotected. The new PR targets develop, so failing checks are not yet an enforced merge blocker there. This observation is tracked in the Notion lint/CI records.
+
+## Okta, session and dependency verification — November 9, 2026
+
+Verified locally on November 9, 2026 (Pacific/Honolulu), against the working tree based on `ee99fb4667aa0d91bb1b1eb9dfb55c4c31b615e1`. The authentication and remediation changes are uncommitted; no new PR or hosted CI result is asserted by this record.
+
+### Complete security suite
+
+`pwsh -NoProfile -File scripts/verify-security.ps1` completed with exit code 0. It rebuilt the scanner and all four development images, scanned actual exported image archives with pinned Trivy 0.76.1 and a refreshed vulnerability database, and removed its temporary host/cache archives. Existing HIGH/CRITICAL gates, including unfixed findings and operational scanner failures, were retained.
+
+| Check | Result |
+| --- | --- |
+| Working-tree Gitleaks scan | No leaks |
+| All fetched Git history | No leaks; 11 commits scanned |
+| NuGet transitive audit | Passed; no advisories |
+| Backend image | 0 HIGH/CRITICAL findings |
+| Frontend image | 0 HIGH/CRITICAL findings |
+| SQL Server image | 0 HIGH/CRITICAL findings |
+| Browser E2E image | 0 HIGH/CRITICAL findings |
+
+The images' lower-severity findings were outside the configured HIGH/CRITICAL report filter; these results do not claim zero vulnerabilities at every severity. No image changes or vulnerability exceptions were required in this run. Application source/NuGet dependencies are mounted/restored by development containers rather than baked into these tool images; source/dependency audits complement the image scans.
+
+### npm finding and remediation
+
+The initial suite's npm audit passed its HIGH/CRITICAL threshold but reported **10 moderate findings**, all stemming from `minimatch` 10.2.6 through ESLint, `@eslint/config-array` and `@typescript-eslint/typescript-estree`. [GHSA-g3hv-75wg-m249 / CVE-2026-118764](https://github.com/advisories/GHSA-g3hv-75wg-m249) identifies an attacker-controlled glob-pattern amplification problem and lists 11.0.1 as fixed.
+
+`src/dahub-web/package.json` now overrides only `minimatch` versions `>=10.0.0 <11.0.1` to **11.0.1**, with the corresponding integrity-pinned lockfile update. Its new nonrecursive glob-matching dependency is included in the lockfile. The fixed release supports the project's Node 24 runtime. The override is explicit because current lint packages request the affected major; remove/revisit it when those upstream dependencies adopt a corrected release. The reported `npm audit fix --force` ESLint downgrade was not applied, and no advisory was suppressed.
+
+Follow-up verification on the remediated lockfile used a clean `npm ci`, Angular ESLint with zero allowed warnings, production build, all 8 component/interceptor/routing tests, Prettier, and an unfiltered `npm audit --package-lock-only`: all passed, with **zero npm vulnerabilities**. Frontend coverage remained above every 80% gate (92.85% statements, 89.74% branches, 92.85% functions, 92.68% lines). All 6 Chromium/Firefox/WebKit smoke tests passed again after the dependency change.
+
+### Authentication evidence and release limits
+
+The full `scripts/verify.ps1` gate passed for the authentication implementation before this dependency-only remediation: 8 backend unit tests, 34 credential-free API/protocol integration tests, 8 frontend tests and 6 browser smoke tests. Backend line coverage: API 94.21%, Infrastructure 95.87%, Core 100%. Backend code did not change during this follow-up; the affected frontend checks and browser suite were repeated after the dependency fix.
+
+Signed synthetic-provider tests cover valid authorization code + PKCE, invalid issuer/audience/signature/lifetime/state/nonce, missing correlation cookie, unknown and exact-subject mismatches, local user/link/version revocation, idle timeout/sliding activity, CSRF rejection and logout replay. Credentials and access/refresh tokens are not exposed to Angular. Raw OIDC protocol logging is disabled, and only a server-side ID token is retained for provider logout. See [authentication configuration](authentication.md).
+
+The process-local store supports one API instance; restart/eviction invalidates sessions. Actual Okta application registration, MFA allowed/denied outcomes, live logout and expired-session return journey, enrollment/bootstrap administration, local permission policies and production secret/TLS controls remain release work. Native Safari was not tested. The real SQL migration/runtime-security probes were not rerun: there were no schema or SQL-environment changes, and the credential-free gate skips that isolated SQL test. Image scans do not establish database runtime security or production readiness.
+
+Related Notion records: [Okta sign-in and local identity links](https://app.notion.com/p/412ee4cf5eb481d293a2e5109ed3230b) and [CI pipeline](https://app.notion.com/p/412ee4cf5eb4817da8c1f9fea9941ab5). Their updates distinguish completed local implementation/tests from outstanding live-provider and hosted acceptance criteria.
+
+## PR preparation verification — November 10, 2026
+
+Both complete local gates were repeated on the final authentication/remediation tree before PR preparation. `scripts/verify.ps1` passed: 8 unit tests, 34 credential-free integration/protocol tests, 8 frontend tests and all 6 Chromium/Firefox/WebKit smoke tests, plus builds, lint, formatting and coverage gates. One real-SQL test was intentionally skipped. Backend lines: API 94.21%, Infrastructure 95.87%, Core 100%; frontend statements/branches/functions/lines: 92.85%/89.74%/92.85%/92.68%.
+
+`scripts/verify-security.ps1` also passed in full after the minimatch remediation: working-tree and fetched-history Gitleaks scans found no leaks (15 fetched commits), NuGet audit found no advisories, npm reported zero vulnerabilities, and backend/frontend/SQL/E2E images each reported zero HIGH/CRITICAL findings. The root `AGENTS.md` guide is now included in the working-tree scanner mounts. No severity threshold, suppression or security exception was changed. Temporary image archives were cleaned up.
+
+The guide was moved from ignored `requirements/agents.md` to root `AGENTS.md` at the user's request. Other requirements files remain ignored. The authentication branch is `feature/1.3-okta-server-sessions`, stacked on the still-open prerequisite PR #17; merge that prerequisite first and retarget the authentication PR to develop. Hosted checks on the new PR head are separate evidence. The live-provider, single-instance, SQL-runtime and native-Safari limitations above still apply.

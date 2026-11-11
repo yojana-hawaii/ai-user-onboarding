@@ -25,10 +25,12 @@ services:
       - ./compose.yaml:/repo/compose.yaml:ro
       - ./compose.e2e.yaml:/repo/compose.e2e.yaml:ro
       - ./compose.database.yaml:/repo/compose.database.yaml:ro
+      - ./compose.okta.yaml:/repo/compose.okta.yaml:ro
       - ./.config:/repo/.config:ro
       - ./compose.security.yaml:/repo/compose.security.yaml:ro
       - ./README.md:/repo/README.md:ro
       - ./CONTRIBUTING.md:/repo/CONTRIBUTING.md:ro
+      - ./AGENTS.md:/repo/AGENTS.md:ro
       - ./Directory.Build.props:/repo/Directory.Build.props:ro
       - ./global.json:/repo/global.json:ro
       - ./DaHub.slnx:/repo/DaHub.slnx:ro
