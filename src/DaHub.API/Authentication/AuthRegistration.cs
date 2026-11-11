@@ -66,10 +66,17 @@ public static class AuthRegistration
             options.Events.OnValidatePrincipal = async context =>
             {
                 var identities = context.HttpContext.RequestServices.GetRequiredService<LocalIdentity>();
-                if (context.Principal is null || !await identities.IsCurrentAsync(context.Principal, context.HttpContext.RequestAborted))
+                var refreshed = context.Principal is null ? null
+                    : await identities.RefreshAsync(context.Principal, context.HttpContext.RequestAborted);
+                if (refreshed is null)
                 {
                     context.RejectPrincipal();
                     await context.HttpContext.SignOutAsync(CookieScheme);
+                }
+                else if (!ReferenceEquals(refreshed, context.Principal))
+                {
+                    context.ReplacePrincipal(refreshed);
+                    context.ShouldRenew = true;
                 }
             };
         });
@@ -79,7 +86,8 @@ public static class AuthRegistration
         if (!settings.Enabled)
             return;
         settings.Validate();
-        var secret = File.ReadAllText(settings.ClientSecretFile).Trim();
+        var secret = string.IsNullOrWhiteSpace(settings.ClientSecretFile)
+            ? settings.ClientSecret : File.ReadAllText(settings.ClientSecretFile).Trim();
         if (string.IsNullOrWhiteSpace(secret))
             throw new InvalidOperationException("The Okta client secret file is empty.");
 

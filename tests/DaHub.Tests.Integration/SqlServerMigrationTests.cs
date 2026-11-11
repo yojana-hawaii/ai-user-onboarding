@@ -116,7 +116,7 @@ public sealed class SqlServerMigrationTests
                         ["Database:ConnectionStringFile"] = ""
                     }));
             });
-            using var client = factory.CreateClient();
+            using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
             using (var ready = await client.GetAsync("/api/health/ready"))
             {
                 Assert.Equal(HttpStatusCode.OK, ready.StatusCode);
@@ -178,9 +178,31 @@ public sealed class SqlServerMigrationTests
         Assert.Contains("provisioning.execute", PermissionResolver.Cached(principal));
         Assert.True(await identities.IsCurrentAsync(principal, default));
         Assert.Single(commands, command => command.Contains("AppRolePermissions", StringComparison.Ordinal));
+        // Direct maintenance can change alternate-key values even though EF forbids tracked key edits.
+        foreach (var edit in new[]
+        {
+            "UPDATE dahub_ita.AppExternalIdentities SET Issuer=N'https://other-synthetic.okta.com' WHERE Subject=N'rbac'",
+            "UPDATE dahub_ita.AppExternalIdentities SET Issuer=N'https://synthetic.okta.com' WHERE Subject=N'rbac'",
+            "UPDATE dahub_ita.AppExternalIdentities SET Subject=N'RBAC' WHERE Subject=N'rbac'",
+            "UPDATE dahub_ita.AppExternalIdentities SET Subject=N'rbac' WHERE Subject=N'RBAC'"
+        })
+        {
+            await Execute(edit);
+            Assert.Equal(++version, await Version());
+            if (edit.Contains("other-synthetic", StringComparison.Ordinal) || edit.Contains("SET Subject=N'RBAC'", StringComparison.Ordinal))
+                Assert.Null(await identities.RefreshAsync(principal, default));
+        }
+        Assert.Single(commands, command => command.Contains("AppRolePermissions", StringComparison.Ordinal));
         await Execute("UPDATE dahub_ita.AppRoles SET IsActive=0 WHERE Id=2");
         Assert.False(await identities.IsCurrentAsync(principal, default));
         Assert.Single(commands, command => command.Contains("AppRolePermissions", StringComparison.Ordinal));
+        var refreshed = await identities.RefreshAsync(principal, default);
+        Assert.NotNull(refreshed);
+        Assert.Empty(PermissionResolver.Cached(refreshed));
+        Assert.True(await identities.IsCurrentAsync(refreshed, default));
+        Assert.Equal(2, commands.Count(command => command.Contains("AppRolePermissions", StringComparison.Ordinal)));
+        Assert.Same(refreshed, await identities.RefreshAsync(refreshed, default));
+        Assert.Equal(2, commands.Count(command => command.Contains("AppRolePermissions", StringComparison.Ordinal)));
         Assert.Equal(++version, await Version());
         await Execute("UPDATE dahub_ita.AppRoles SET IsActive=1 WHERE Id=2");
         Assert.Equal(++version, await Version());

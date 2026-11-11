@@ -37,7 +37,7 @@ docker compose -f compose.yaml -f compose.database.yaml up -d api web
 
 The API never migrates on startup. Configure ConnectionStrings:DaHub or Database:ConnectionStringFile outside Compose using protected configuration. The API rejects sa and optional/disabled encryption; TrustServerCertificate is permitted only in Development for the local SQL self-signed certificate. Deployment requires verified SQL certificates. The default development collation is SQL_Latin1_General_CP1_CI_AS.
 
-SQL readiness at https://localhost:5081/api/health/ready (also through the frontend proxy) returns 200 only when connection and migration-history checks pass, otherwise 503 with a generic Unhealthy body. Liveness remains independent at /api/health/live. AD and Okta readiness are future integration work.
+SQL readiness at https://localhost:5081/api/health/ready (also through the frontend proxy) returns 200 only when connection and migration-history checks pass, otherwise 503 with safe ProblemDetails. Liveness remains independent at /api/health/live. The [API foundation](api-foundation.md) adds aggregate SQL/AD/Entra transport health at /health and /api/health. Live directory permissions, Okta/MFA and worker integration acceptance remain separate work.
 
 ## Migrations and rollback
 

@@ -94,21 +94,29 @@ public sealed class PermissionTests
     {
         public WebApplicationFactory<Program> Factory { get; }
         public HttpClient Client { get; }
-        public Fixture(params int[] roles)
+        public CapturedLogEvents Logs { get; } = new();
+        public ReadRace Race { get; } = new();
+        public Fixture(params int[] roles) : this(false, roles) { }
+        public Fixture(bool simulateRace, params int[] roles)
         {
             var name = Guid.NewGuid().ToString();
             Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder => builder.ConfigureServices(services =>
             {
                 services.RemoveAll<DbContextOptions<DaHubDbContext>>();
                 services.RemoveAll<Microsoft.EntityFrameworkCore.Infrastructure.IDbContextOptionsConfiguration<DaHubDbContext>>();
-                services.AddDbContext<DaHubDbContext>(options => options.UseInMemoryDatabase(name));
+                services.AddDbContext<DaHubDbContext>(options =>
+                {
+                    options.UseInMemoryDatabase(name);
+                    if (simulateRace) options.AddInterceptors(Race);
+                });
                 services.AddSingleton<IStartupFilter, Endpoints>();
+                services.AddSingleton<Serilog.Core.ILogEventSink>(Logs);
             }));
             Client = Factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
             Change(database =>
             {
                 database.Database.EnsureCreated();
-                database.AppUsers.Add(new AppUser { Id = 1, DisplayName = "Synthetic", EmployeeId = 12 });
+                database.AppUsers.Add(new AppUser { Id = 1, DisplayName = "Synthetic", UPN = "synthetic@example.invalid", EmployeeId = 12 });
                 database.AppExternalIdentities.Add(new AppExternalIdentity { Id = 1, AppUserId = 1, ProviderKey = "Okta", Issuer = "https://synthetic.okta.com", Subject = "subject", LinkMethod = "Bootstrap" });
                 foreach (var role in roles)
                     database.AppUserRoles.Add(new AppUserRole { UserId = 1, RoleId = role, AssignedBy = "synthetic" });
@@ -137,6 +145,20 @@ public sealed class PermissionTests
             return response.StatusCode == HttpStatusCode.OK;
         }
         public void Dispose() { Client.Dispose(); Factory.Dispose(); }
+    }
+
+    private sealed class ReadRace : Microsoft.EntityFrameworkCore.Diagnostics.IMaterializationInterceptor
+    {
+        public Action? OnUserRead { get; set; }
+        public object InitializedInstance(Microsoft.EntityFrameworkCore.Diagnostics.MaterializationInterceptionData data, object entity)
+        {
+            if (entity is AppUser && OnUserRead is { } action)
+            {
+                OnUserRead = null;
+                action();
+            }
+            return entity;
+        }
     }
 
     [Fact]
@@ -186,21 +208,109 @@ public sealed class PermissionTests
     }
 
     [Theory]
-    [InlineData("version")]
     [InlineData("inactive")]
     [InlineData("identity")]
+    [InlineData("issuer")]
+    [InlineData("subject")]
     public async Task ExistingCookieCannotAuthorizeAfterRevocation(string change)
     {
         using var fixture = new Fixture(2);
         using var login = await fixture.Client.GetAsync("/test/login");
+        if (change is "issuer" or "subject")
+        {
+            // EF alternate keys are immutable; replace the synthetic row to simulate rebinding the same link ID.
+            fixture.Change(database => database.AppExternalIdentities.RemoveRange(database.AppExternalIdentities));
+            fixture.Change(database => database.AppExternalIdentities.Add(new AppExternalIdentity
+            {
+                Id = 1,
+                AppUserId = 1,
+                ProviderKey = "Okta",
+                LinkMethod = "Bootstrap",
+                Issuer = change == "issuer" ? "https://other-synthetic.okta.com" : "https://synthetic.okta.com",
+                Subject = change == "subject" ? "other-synthetic-subject" : "subject"
+            }));
+        }
         fixture.Change(database =>
         {
-            if (change == "version") database.AppUsers.Single().AuthorizationVersion++;
             if (change == "inactive") database.AppUsers.Single().IsActive = false;
             if (change == "identity") database.AppExternalIdentities.Single().RevokedAt = DateTime.UtcNow;
         });
         using var response = await fixture.Client.GetAsync("/test/provisioning.execute");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ExistingCookieRefreshesRemovedAndAddedPermissionsWithoutLogin()
+    {
+        using var fixture = new Fixture(2);
+        using var login = await fixture.Client.GetAsync("/test/login");
+        fixture.Change(database =>
+        {
+            database.AppUserRoles.RemoveRange(database.AppUserRoles);
+            database.AppUserRoles.Add(new AppUserRole { UserId = 1, RoleId = 1, AssignedBy = "synthetic" });
+            database.AppUsers.Single().AuthorizationVersion++;
+        });
+        using var removed = await fixture.Client.GetAsync("/test/provisioning.execute");
+        Assert.Equal(HttpStatusCode.Forbidden, removed.StatusCode);
+        using var added = await fixture.Client.GetAsync("/test/requests.submit");
+        Assert.Equal(HttpStatusCode.OK, added.StatusCode);
+        using var session = await fixture.Client.GetAsync("/api/auth/session");
+        var json = await session.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Contains("requests.submit", json.GetProperty("permissions").EnumerateArray().Select(x => x.GetString()));
+        Assert.DoesNotContain("provisioning.execute", json.GetProperty("permissions").EnumerateArray().Select(x => x.GetString()));
+        fixture.Change(database => Assert.Single(database.AuditLog));
+        var entry = fixture.Logs.Events.Last();
+        Assert.Equal("1", ((Serilog.Events.ScalarValue)entry.Properties["ActorUserId"]).Value);
+        Assert.Equal("synthetic@example.invalid", ((Serilog.Events.ScalarValue)entry.Properties["ActorUPN"]).Value);
+    }
+
+    [Fact]
+    public async Task ConcurrentChangeDuringPermissionRefreshFailsClosed()
+    {
+        using var fixture = new Fixture(true, 2);
+        using var login = await fixture.Client.GetAsync("/test/login");
+        fixture.Change(database => database.AppUsers.Single().AuthorizationVersion++);
+        fixture.Race.OnUserRead = () => fixture.Change(database =>
+        {
+            database.AppUserRoles.RemoveRange(database.AppUserRoles);
+            database.AppUsers.Single().AuthorizationVersion++;
+        });
+        using var response = await fixture.Client.GetAsync("/test/provisioning.execute");
+        Assert.Null(fixture.Race.OnUserRead);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UnavailableAuthorizationStoreCannotUseCachedPermissions()
+    {
+        using var fixture = new Fixture(true, 2);
+        using var login = await fixture.Client.GetAsync("/test/login");
+        fixture.Race.OnUserRead = () => throw new InvalidOperationException("synthetic unavailable store");
+        using var response = await fixture.Client.GetAsync("/api/auth/session");
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.True(response.Headers.CacheControl?.NoStore);
+        Assert.DoesNotContain("synthetic unavailable", await response.Content.ReadAsStringAsync());
+    }
+
+    [Theory]
+    [InlineData("role")]
+    [InlineData("permission")]
+    [InlineData("grant")]
+    public async Task PermissionEditsRefreshWithoutPreservingObsoleteAuthority(string change)
+    {
+        using var fixture = new Fixture(2);
+        using var login = await fixture.Client.GetAsync("/test/login");
+        fixture.Change(database =>
+        {
+            if (change == "role") database.AppRoles.Single(role => role.Id == 2).IsActive = false;
+            if (change == "permission") database.AppPermissions.Single(permission => permission.Name == "provisioning.execute").IsActive = false;
+            if (change == "grant") database.AppRolePermissions.RemoveRange(database.AppRolePermissions.Where(grant => grant.RoleId == 2));
+            database.AppUsers.Single().AuthorizationVersion++;
+        });
+        using var removed = await fixture.Client.GetAsync("/test/provisioning.execute");
+        Assert.Equal(HttpStatusCode.Forbidden, removed.StatusCode);
+        using var activeSession = await fixture.Client.GetAsync("/api/auth/session");
+        Assert.Equal(HttpStatusCode.OK, activeSession.StatusCode);
     }
 
     [Theory]
