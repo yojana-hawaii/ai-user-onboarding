@@ -6,14 +6,14 @@ Development runs in Docker Desktop Linux containers on this Windows workstation.
 
 | Area | Selection | Observed validation |
 | --- | --- | --- |
-| Backend | .NET / ASP.NET Core 10 LTS, `mcr.microsoft.com/dotnet/sdk:10.0` | SDK 10.0.403; Release solution build passes with zero warnings/errors |
-| SDK selection | `global.json`: minimum 10.0.100, latest installed stable 10.0 feature band | Resolves to 10.0.403 inside container |
-| Frontend | Angular 22, Node 24 LTS image `node:24-alpine` | Angular 22.2.4; CLI/build 22.2.5; production build passes |
-| JavaScript runtime | Node 24.x and npm 11.x inside Docker | Node 24.22.2, npm 11.21.1 (bundled Undici patched to 6.29.1) |
+| Backend | .NET / ASP.NET Core 10 LTS, `mcr.microsoft.com/dotnet/sdk:10.0` | November 14 dependency integration: SDK 10.0.404 / ASP.NET Core 10.0.15; Release solution build passes with zero warnings/errors |
+| SDK selection | `global.json`: minimum 10.0.100, latest installed stable 10.0 feature band | Resolves to 10.0.404 inside container |
+| Frontend | Angular 22, Node 26 frontend image `node:26-alpine` | Angular/compiler 22.2.5; CLI/build 22.2.6; see November 14 integration evidence |
+| JavaScript runtime | Node 26 frontend / Node 24 browser tests, npm 11.x inside Docker | Frontend Node 26.13.0, npm 11.21.1 (bundled Undici patched to 6.29.1) |
 | TypeScript | 6.0.x | 6.0.3 resolves and compiles |
 | Backend tests | xUnit 2.9.3, VS adapter 3.1.5, Microsoft.NET.Test.Sdk 18.0.0 | API integration test passes; unit project is intentionally empty until domain implementation |
 | API integration host | Microsoft.AspNetCore.Mvc.Testing 10.0.0 | Liveness test passes; no SQL or external-service validation |
-| Frontend tests | Angular unit-test builder, Vitest, jsdom | Vitest 4.1.12, jsdom 27.4.0; one component test passes |
+| Frontend tests | Angular unit-test builder, Vitest, jsdom | Vitest/coverage-v8 5.1.0, jsdom 31.0.0; see November 14 integration evidence |
 | Formatting | .editorconfig, dotnet format, Prettier | Backend and frontend checks pass; Prettier 3.9.10 |
 | Persistence | SQL Server 2022; EF Core SQL Server provider and dotnet-ef 10.0.14 | Complete 31-table first-release schema, catalog seeds, append-only grants and SQL readiness implemented; see [database foundation](database-foundation.md) for current scope and validation |
 | CI | GitHub Actions on Ubuntu, invoking the same Docker verification script | Workflow prepared; local script passes; hosted execution and branch protections pending |
@@ -57,3 +57,7 @@ The security hardening revision and final validation are recorded in development
 Verified locally on November 8, 2026: Release build and .NET formatting passed; 8 unit and 5 API integration tests passed, with the SQL-only migration test skipped in this credential-free run. Merged backend line coverage was 94.91%. Angular lint, production build, formatting and 3 component/routing tests passed with 100% coverage in all four frontend metrics. All 6 browser smoke tests passed across Chromium, Firefox and WebKit. The live development Swagger UI and OpenAPI document returned HTTPS 200 with certificate verification enabled. The hosted build/test/format job passed on the initial implementation commit in PR #17. Results for the final security-remediation commit are tracked in that PR's checks; native Safari validation on macOS remains unverified.
 
 After security validation, the E2E image moved to the supported Ubuntu 26.04 Playwright image with Node 24 retained and the APT security fix applied. The final complete security command passed with zero HIGH/CRITICAL findings in all four development images, and all six browser smoke tests passed again. See [the security verification record](development-security.md#cross-browser-test-image--november-8-2026) and [PR #17](https://github.com/yojana-hawaii/ai-user-onboarding/pull/17).
+
+## Dependency integration — November 14, 2026
+
+The current SDK, Node, Angular and test-tool versions above supersede their earlier baseline values. See the [integration verification record](development-security.md#dependabot-integration--november-14-2026) for exact local/hosted scope. Frontend build and unit tests use Node 26; browser smoke tests retain the pinned Node 24/Playwright image.
