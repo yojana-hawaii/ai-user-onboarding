@@ -1,6 +1,6 @@
 # DaHub development workspace
 
-Angular frontend, ASP.NET Core API, domain/infrastructure libraries and tests. All 31 first-release schema tables, Okta sign-in/server-side sessions, local permission policies and the API foundation are implemented. Employee workflows and live deployment/provider acceptance remain subsequent work.
+Angular frontend, ASP.NET Core API, domain/infrastructure libraries and tests. All 32 first-release schema tables, Okta sign-in/server-side sessions, local permission policies and the API foundation are implemented. Employee workflows and live deployment/provider acceptance remain subsequent work.
 
 See [Okta setup and session security](docs/authentication.md) to configure the opt-in sign-in integration, enroll verified identities and validate MFA in your tenant. The server-side session store supports one API instance and invalidates sessions on restart; live tenant validation remains required.
 
@@ -197,3 +197,9 @@ Both full local gates passed after the review fixes: 8 unit, 93 credential-free 
 Eight existing Dependabot branches are integrated on `feature/dependabot-to-develop` for develop: Angular 22.2.5 / CLI/build 22.2.6, jsdom 31.0.0, Vitest/coverage-v8 5.1.0, Node 26 and Trivy 0.76.2. The SDK proposal is resolved to patched SDK 10.0.404 / ASP.NET Core 10.0.15 rather than the vulnerable runtime in the older proposed digest. Browser testing retains its pinned Node 24/Playwright image; package engines support both Node lines. Existing dependency fixes, container restrictions and verification gates remain intact. See the [dependency integration record](docs/development-security.md#dependabot-integration--november-14-2026) for verification and merge evidence. UI-shell PR #25 remains separate; no deployment or production change is included.
 
 The full functional and security gates passed locally: 8 unit, 93 credential-free integration/protocol, 12 frontend and 6 Chromium/Firefox/WebKit tests; no source/history secrets, no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images. Coverage thresholds and formatting passed. Real SQL probes were not rerun locally; hosted PR/develop evidence is recorded separately.
+
+### Core background worker — WBS 1.7
+
+The separate opt-in worker provides atomic SQL claims, an eight-type dispatcher, durable attempt history and a four-attempt retry policy (1/4/16-minute delays). `WorkerAttempts` must be applied before starting it. Workflow handlers remain deferred; interrupted or uncertain external actions stop for reconciliation. See [worker setup and execution contract](docs/background-worker.md). IT-attention events and retained failures require operational monitoring; email/Teams delivery remains WBS 1.8 work. Verification evidence and deployment limits are recorded in [development security](docs/development-security.md).
+
+Local verification on November 14, 2026 passed both complete gates, the separate disposable SQL probe and SQL security checks. The PR review base is develop, starting from commit 3b103026b10281da3832d8a855cf2548f47ba3c3; current-head hosted checks are tracked separately from these local results. No persistent migration or deployment was performed. Per-step workflow wiring and IT notification delivery remain open acceptance items.

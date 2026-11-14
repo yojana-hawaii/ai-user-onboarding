@@ -3558,5 +3558,76 @@
         ]
       }
     ]
+  },
+  {
+    "table": "BackgroundJobAttempts",
+    "columns": [
+      {
+        "name": "JobId",
+        "identity": false,
+        "nullable": false,
+        "collation": null,
+        "type": "bigint"
+      },
+      {
+        "name": "Attempt",
+        "identity": false,
+        "nullable": false,
+        "collation": null,
+        "type": "int"
+      },
+      {
+        "name": "StartedAt",
+        "identity": false,
+        "nullable": false,
+        "collation": null,
+        "type": "datetime2"
+      },
+      {
+        "name": "CompletedAt",
+        "identity": false,
+        "nullable": true,
+        "collation": null,
+        "type": "datetime2"
+      },
+      {
+        "name": "RetryAt",
+        "identity": false,
+        "nullable": true,
+        "collation": null,
+        "type": "datetime2"
+      },
+      {
+        "name": "Outcome",
+        "identity": false,
+        "nullable": false,
+        "collation": null,
+        "type": "nvarchar(20)"
+      },
+      {
+        "name": "ErrorCode",
+        "identity": false,
+        "nullable": true,
+        "collation": null,
+        "type": "nvarchar(50)"
+      }
+    ],
+    "keys": [
+      "JobId",
+      "Attempt"
+    ],
+    "indexes": [],
+    "checks": [],
+    "foreignKeys": [
+      {
+        "principal": "BackgroundJobs",
+        "columns": [
+          "JobId"
+        ],
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
   }
 ]

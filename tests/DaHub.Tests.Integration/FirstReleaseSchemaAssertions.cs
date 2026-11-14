@@ -48,8 +48,8 @@ internal static class FirstReleaseSchemaAssertions
                         reader.IsDBNull(6) ? null : reader.GetString(6)));
             }
         }
-        Assert.Equal(31, expected.Length);
-        Assert.Equal(300, actual.Count);
+        Assert.Equal(32, expected.Length);
+        Assert.Equal(307, actual.Count);
         foreach (var table in expected)
         {
             foreach (var column in table.Columns)
@@ -317,9 +317,9 @@ internal static class FirstReleaseSchemaAssertions
                 Assert.Equal(1, reader.GetInt32(1));
                 Assert.Equal(1, reader.GetInt32(2));
                 Assert.Equal(appendOnly ? 0 : 1, reader.GetInt32(3));
-                Assert.Equal(appendOnly ? 0 : 1, reader.GetInt32(4));
+                Assert.Equal(appendOnly || reader.GetString(0) == "BackgroundJobAttempts" ? 0 : 1, reader.GetInt32(4));
             }
-            Assert.Equal(31, tables);
+            Assert.Equal(32, tables);
         }
         var historyDenied = await Assert.ThrowsAsync<SqlException>(() =>
             context.Database.ExecuteSqlRawAsync("DELETE dahub_ita.__EFMigrationsHistory"));

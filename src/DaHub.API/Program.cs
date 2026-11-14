@@ -5,6 +5,22 @@ using DaHub.Infrastructure.Persistence;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 
+if (args.Contains("--worker", StringComparer.Ordinal))
+{
+    try
+    {
+        using var worker = WorkerHost.Build(args.Where(arg => arg != "--worker").ToArray());
+        await worker.RunAsync();
+    }
+    catch (Exception)
+    {
+        // Configuration and hosting exceptions can contain secret source paths or SQL data.
+        Console.Error.WriteLine("Worker startup or shutdown failed; inspect protected configuration.");
+        Environment.ExitCode = 1;
+    }
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddApiFoundation();

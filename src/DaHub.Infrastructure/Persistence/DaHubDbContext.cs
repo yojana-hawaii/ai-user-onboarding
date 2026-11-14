@@ -39,6 +39,7 @@ public sealed class DaHubDbContext(DbContextOptions<DaHubDbContext> options) : D
     public DbSet<AuditLogEntry> AuditLog => Set<AuditLogEntry>();
     public DbSet<SysAidTicket> SysAidTickets => Set<SysAidTicket>();
     public DbSet<BackgroundJob> BackgroundJobs => Set<BackgroundJob>();
+    public DbSet<BackgroundJobAttempt> BackgroundJobAttempts => Set<BackgroundJobAttempt>();
     public DbSet<AuditLogExport> AuditLogExports => Set<AuditLogExport>();
     public DbSet<NotificationLogEntry> NotificationLog => Set<NotificationLogEntry>();
 

@@ -12,7 +12,7 @@ public sealed class BackgroundJob
     public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public int AttemptCount { get; set; } = 0;
-    public int MaxAttempts { get; set; } = 3;
+    public int MaxAttempts { get; set; } = 4;
     public string? LastError { get; set; }
     public DateTime CreatedAt { get; set; }
 }
