@@ -3,13 +3,119 @@
   color: #172b3a;
   background: #f4f7fa;
 }
-
+* {
+  box-sizing: border-box;
+}
 body {
   margin: 0;
 }
-
+a {
+  color: #075b73;
+}
+a,
+button {
+  border-radius: 0.25rem;
+}
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid #b15b00;
+  outline-offset: 3px;
+}
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1.5rem 2rem;
+  background: #fff;
+  border-bottom: 1px solid #d6e0e5;
+}
+.organization {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.35rem;
+}
+.brand {
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.session-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+button {
+  padding: 0.6rem 1rem;
+  border: 1px solid #075b73;
+  background: #fff;
+  color: #075b73;
+  cursor: pointer;
+  font: inherit;
+}
+.app-layout {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  min-height: calc(100dvh - 7rem);
+}
+nav {
+  padding: 2rem 1rem;
+  border-right: 1px solid #d6e0e5;
+}
+nav a {
+  display: block;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.4rem;
+  text-decoration: none;
+}
+nav a.active {
+  background: #d9ecef;
+  font-weight: 600;
+}
 main {
-  max-width: 48rem;
-  margin: 5rem auto;
-  padding: 2rem;
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 2.5rem;
+  overflow-wrap: anywhere;
+}
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -5rem;
+  background: white;
+  padding: 0.75rem;
+  z-index: 1;
+}
+.skip-link:focus {
+  top: 0.5rem;
+}
+.loading-skeleton div {
+  height: 1rem;
+  background: #d6e0e5;
+  border-radius: 0.25rem;
+  margin: 1rem 0;
+  max-width: 35rem;
+}
+.loading-skeleton div:last-child {
+  max-width: 24rem;
+}
+@media (max-width: 640px) {
+  .app-header {
+    padding: 1rem;
+  }
+  .app-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+  nav {
+    border-right: 0;
+    border-bottom: 1px solid #d6e0e5;
+    padding: 0.75rem;
+  }
+  main {
+    padding: 1.5rem;
+  }
 }

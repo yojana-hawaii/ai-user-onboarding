@@ -18,7 +18,7 @@ describe('Application routing', () => {
     expect(fixture.nativeElement.querySelector('router-outlet')).toBeTruthy();
   });
 
-  it('loads the home page and redirects unknown routes', async () => {
+  it('loads the home page and preserves unknown URLs on the 404 page', async () => {
     TestBed.configureTestingModule({
       providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
     });
@@ -26,6 +26,6 @@ describe('Application routing', () => {
     await harness.navigateByUrl('/');
     expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('DaHub');
     await harness.navigateByUrl('/missing');
-    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('DaHub');
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('Page not found');
   });
 });

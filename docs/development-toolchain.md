@@ -6,8 +6,8 @@ Development runs in Docker Desktop Linux containers on this Windows workstation.
 
 | Area | Selection | Observed validation |
 | --- | --- | --- |
-| Backend | .NET / ASP.NET Core 10 LTS, `mcr.microsoft.com/dotnet/sdk:10.0` | SDK 10.0.403; Release solution build passes with zero warnings/errors |
-| SDK selection | `global.json`: minimum 10.0.100, latest installed stable 10.0 feature band | Resolves to 10.0.403 inside container |
+| Backend | .NET / ASP.NET Core 10 LTS, `mcr.microsoft.com/dotnet/sdk:10.0` | November 14 security refresh: SDK 10.0.404 / runtime 10.0.15; Release solution build passes with zero warnings/errors |
+| SDK selection | `global.json`: minimum 10.0.100, latest installed stable 10.0 feature band | Resolves to 10.0.404 inside the refreshed container |
 | Frontend | Angular 22, Node 24 LTS image `node:24-alpine` | Angular 22.2.4; CLI/build 22.2.5; production build passes |
 | JavaScript runtime | Node 24.x and npm 11.x inside Docker | Node 24.22.2, npm 11.21.1 (bundled Undici patched to 6.29.1) |
 | TypeScript | 6.0.x | 6.0.3 resolves and compiles |

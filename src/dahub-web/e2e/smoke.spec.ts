@@ -5,8 +5,8 @@ test('home page and fallback route render correctly', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'DaHub', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Sign in with Okta' })).toBeVisible();
   await page.goto('/unknown-route');
-  await expect(page.getByRole('heading', { name: 'DaHub', exact: true })).toBeVisible();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { name: 'Page not found', exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/unknown-route$/);
 });
 
 test.beforeAll(async ({ request }) => {

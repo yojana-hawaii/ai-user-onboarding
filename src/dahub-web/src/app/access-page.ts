@@ -1,13 +1,17 @@
 import { Component, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { map } from 'rxjs';
 
 @Component({
-  template: '<main><h1>{{ title }}</h1><p>{{ message }}</p><a href="/">Return home</a></main>',
+  imports: [RouterLink],
+  template:
+    '<section><h1>{{ title() }}</h1><p>{{ message() }}</p><a routerLink="/">Return home</a></section>',
 })
 export class AccessPage {
-  private readonly data = inject(ActivatedRoute).snapshot.data;
-  readonly title = this.data['title'] as string;
-  readonly message = this.data['message'] as string;
+  private readonly route = inject(ActivatedRoute);
+  readonly title = toSignal(this.route.data.pipe(map((data) => data['title'] as string)));
+  readonly message = toSignal(this.route.data.pipe(map((data) => data['message'] as string)));
 }
 
 @Component({
