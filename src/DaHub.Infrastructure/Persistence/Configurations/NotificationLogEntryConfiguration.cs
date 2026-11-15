@@ -11,7 +11,7 @@ public sealed class NotificationLogEntryConfiguration : IEntityTypeConfiguration
     {
         entity.ToTable("NotificationLog", DaHubDbContext.Schema, table =>
         {
-            table.HasCheckConstraint("CK_NotificationLog_Channel", "Channel IN ('Email','Teams')");
+            table.HasCheckConstraint("CK_NotificationLog_Channel", "Channel IN ('Email','Teams','Slack','SMS')");
             table.HasCheckConstraint("CK_NotificationLog_Status", "Status IN ('Sent','Failed','Retrying')");
         });
         entity.HasKey(x => x.Id);

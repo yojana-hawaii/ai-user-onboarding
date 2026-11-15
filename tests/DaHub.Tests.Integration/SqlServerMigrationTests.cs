@@ -60,7 +60,7 @@ public sealed class SqlServerMigrationTests
             await context.Database.MigrateAsync();
             await context.Database.MigrateAsync();
             Assert.False(context.Database.HasPendingModelChanges());
-            Assert.Equal(5, (await context.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(6, (await context.Database.GetAppliedMigrationsAsync()).Count());
 
             await using var connection = new SqlConnection(admin.ConnectionString);
             await connection.OpenAsync();
@@ -74,6 +74,7 @@ public sealed class SqlServerMigrationTests
             await FirstReleaseSchemaAssertions.VerifyAsync(connection);
             await VerifyAuthorizationInvalidationAsync(connection);
             await WorkerSqlAssertions.VerifyAsync(admin.ConnectionString);
+            await NotificationSqlAssertions.VerifyAsync(admin.ConnectionString);
             Assert.True(location.Id > 0);
             Assert.True(location.IsActive);
             Assert.True(location.CreatedAt > DateTime.UtcNow.AddMinutes(-5));

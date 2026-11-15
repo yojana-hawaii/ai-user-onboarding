@@ -3539,7 +3539,7 @@
     "checks": [
       {
         "name": "CK_NotificationLog_Channel",
-        "sql": "Channel IN ('Email','Teams')"
+        "sql": "Channel IN ('Email','Teams','Slack','SMS')"
       },
       {
         "name": "CK_NotificationLog_Status",

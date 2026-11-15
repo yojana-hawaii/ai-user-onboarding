@@ -1682,7 +1682,7 @@ namespace DaHub.Infrastructure.Persistence.Migrations
 
                     b.ToTable("NotificationLog", "dahub_ita", t =>
                         {
-                            t.HasCheckConstraint("CK_NotificationLog_Channel", "Channel IN ('Email','Teams')");
+                            t.HasCheckConstraint("CK_NotificationLog_Channel", "Channel IN ('Email','Teams','Slack','SMS')");
 
                             t.HasCheckConstraint("CK_NotificationLog_Status", "Status IN ('Sent','Failed','Retrying')");
                         });
