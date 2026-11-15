@@ -4,6 +4,16 @@ Behavioral guidelines for the DaHub project. Apply these alongside the current p
 
 Tradeoff: These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
+## Open-source objective and publication boundary
+
+The project goal is a reusable, organization-neutral open-source employee-lifecycle application. Keep shared UI, migrations, examples, fixtures and documentation free of operational organization catalogs, private workspace links, real identities, PHI and credentials. Load organization-specific catalogs through the authorized seed-package boundary; keep requirements/, organization-data/, .secrets/, .certs/ and local audit/tool output ignored and unpublished unless separately authorized after sanitization. Preserve current authorization, audit, isolation and verification gates.
+
+The November 15, 2026 audit of main `2c693cd1f8656966e290b990def8ec410ba12d7a` observed public GitHub visibility, independently confirmed without authentication. Do not describe public visibility as proof of release readiness or repeat older statements that imply the repository is still private. Historical sections below retain their dated scope. Current-source cleanup did not remove organization/location data and private project references from older commits, remote branches or retained PR refs; older PR bodies and author metadata also need review. Do not reproduce identifying findings in tracked handoffs.
+
+Track release preparation in the separate Notion OS workstream, with no sprint assignment until planned. Its gates cover the history/publication and exposure decision, historical/PR metadata cleanup, ownership and existing GPL v3 licensing confirmation, private vulnerability-reporting guidance, and exact-revision final verification of all publication surfaces. Keep existing operational catalog, enrollment/bootstrap, live-provider, native Safari, multi-instance and workflow/deployment acceptance open; source availability does not satisfy those criteria. New OS effort is provisional, counted from leaves once and kept separate from existing sprint estimates.
+
+The audit found no secrets in exact-main files, fetched history, PR/comment text or all 80 retained CI log archives; retain the revision, date and scope rather than claiming a universal absence of secrets. Changes to README/AGENTS or Notion tasks authorize documentation and planning only. Obtain scope-specific authorization before visibility changes, history rewrites/force pushes, remote PR-content cleanup, deletion of branches/logs, a new public repository, or production/provider actions. Existing completed promotion authorizations do not authorize those new actions. A clean new snapshot cannot retract earlier public copies.
+
 ## 1. Think Before Coding
 
 Don't assume. Don't hide confusion. Surface tradeoffs.
