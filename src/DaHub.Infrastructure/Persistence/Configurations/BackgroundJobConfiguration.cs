@@ -25,7 +25,7 @@ public sealed class BackgroundJobConfiguration : IEntityTypeConfiguration<Backgr
         entity.Property(x => x.StartedAt).HasColumnType("datetime2");
         entity.Property(x => x.CompletedAt).HasColumnType("datetime2");
         entity.Property(x => x.AttemptCount).HasColumnType("int").IsRequired().HasDefaultValue(0);
-        entity.Property(x => x.MaxAttempts).HasColumnType("int").IsRequired().HasDefaultValue(3);
+        entity.Property(x => x.MaxAttempts).HasColumnType("int").IsRequired().HasDefaultValue(4);
         entity.Property(x => x.LastError).HasColumnType("nvarchar(max)");
         entity.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired().HasDefaultValueSql("SYSUTCDATETIME()");
         entity.HasIndex(x => x.Status, "IX_BackgroundJobs_Status").HasDatabaseName("IX_BackgroundJobs_Status");

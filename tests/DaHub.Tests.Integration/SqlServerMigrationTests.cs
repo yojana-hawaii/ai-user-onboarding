@@ -60,19 +60,20 @@ public sealed class SqlServerMigrationTests
             await context.Database.MigrateAsync();
             await context.Database.MigrateAsync();
             Assert.False(context.Database.HasPendingModelChanges());
-            Assert.Equal(4, (await context.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(5, (await context.Database.GetAppliedMigrationsAsync()).Count());
 
             await using var connection = new SqlConnection(admin.ConnectionString);
             await connection.OpenAsync();
             await using (var tables = new SqlCommand(
                 "SELECT COUNT(*) FROM sys.tables WHERE schema_id=SCHEMA_ID('dahub_ita') AND name<>'__EFMigrationsHistory'", connection))
             {
-                Assert.Equal(31, Convert.ToInt32(await tables.ExecuteScalarAsync()));
+                Assert.Equal(32, Convert.ToInt32(await tables.ExecuteScalarAsync()));
             }
 
             Assert.Equal("Synthetic clinic", (await context.Locations.SingleAsync(x => x.SiteCode == "TEST")).Name);
             await FirstReleaseSchemaAssertions.VerifyAsync(connection);
             await VerifyAuthorizationInvalidationAsync(connection);
+            await WorkerSqlAssertions.VerifyAsync(admin.ConnectionString);
             Assert.True(location.Id > 0);
             Assert.True(location.IsActive);
             Assert.True(location.CreatedAt > DateTime.UtcNow.AddMinutes(-5));

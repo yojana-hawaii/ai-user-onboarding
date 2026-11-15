@@ -1167,7 +1167,7 @@ namespace DaHub.Infrastructure.Persistence.Migrations
                     b.Property<int>("MaxAttempts")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(3);
+                        .HasDefaultValue(4);
 
                     b.Property<string>("Payload")
                         .HasColumnType("nvarchar(max)");
@@ -1212,6 +1212,37 @@ namespace DaHub.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_BackgroundJobs_Status", "Status IN ('Queued','InProgress','Completed','Failed','Cancelled')");
                         });
+                });
+
+            modelBuilder.Entity("DaHub.Core.Entities.BackgroundJobAttempt", b =>
+                {
+                    b.Property<long>("JobId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Attempt")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ErrorCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("RetryAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("JobId", "Attempt");
+
+                    b.ToTable("BackgroundJobAttempts", "dahub_ita");
                 });
 
             modelBuilder.Entity("DaHub.Core.Entities.Employee", b =>
@@ -2516,6 +2547,15 @@ namespace DaHub.Infrastructure.Persistence.Migrations
                         .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("FK_BackgroundJobs_RequestId");
+                });
+
+            modelBuilder.Entity("DaHub.Core.Entities.BackgroundJobAttempt", b =>
+                {
+                    b.HasOne("DaHub.Core.Entities.BackgroundJob", null)
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DaHub.Core.Entities.Employee", b =>
