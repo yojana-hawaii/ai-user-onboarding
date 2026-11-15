@@ -91,5 +91,8 @@ requirements/
 .certs/
 .secrets/
 
+# Private organization seed packages; never publish operational catalogs.
+organization-data/
+
 **/playwright-report/
 **/test-results/

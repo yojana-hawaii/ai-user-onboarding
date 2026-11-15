@@ -107,6 +107,8 @@ public sealed class PermissionTests
                 services.AddDbContext<DaHubDbContext>(options =>
                 {
                     options.UseInMemoryDatabase(name);
+                    // This policy test double has no transactions. Real profile rollback/locking is tested on SQL Server.
+                    options.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning));
                     if (simulateRace) options.AddInterceptors(Race);
                 });
                 services.AddSingleton<IStartupFilter, Endpoints>();
@@ -116,6 +118,22 @@ public sealed class PermissionTests
             Change(database =>
             {
                 database.Database.EnsureCreated();
+                database.Employees.Add(new Employee
+                {
+                    Id = 12,
+                    LegalFirstName = "Synthetic",
+                    LegalLastName = "Worker",
+                    Username = "synthetic.worker",
+                    Email = "worker@example.invalid",
+                    EmploymentType = "FT",
+                    StartDate = new DateOnly(2026, 11, 1),
+                    VerificationStatus = "Verified",
+                    VerifiedByUPN = "hr@example.invalid",
+                    VerifiedAt = DateTime.UtcNow
+                });
+                database.EmployeeDepartments.Add(new EmployeeDepartment { EmployeeId = 12, DepartmentId = 1, IsPrimary = true });
+                database.EmployeeLocations.Add(new EmployeeLocation { EmployeeId = 12, LocationId = 1, IsPrimary = true });
+                database.EmployeeJobTitles.Add(new EmployeeJobTitle { EmployeeId = 12, JobTitleId = 1, IsPrimary = true, AssignedBy = "synthetic" });
                 database.AppUsers.Add(new AppUser { Id = 1, DisplayName = "Synthetic", UPN = "synthetic@example.invalid", EmployeeId = 12 });
                 database.AppExternalIdentities.Add(new AppExternalIdentity { Id = 1, AppUserId = 1, ProviderKey = "Okta", Issuer = "https://synthetic.okta.com", Subject = "subject", LinkMethod = "Bootstrap" });
                 foreach (var role in roles)

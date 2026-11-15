@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DaHub.Infrastructure.Persistence;
 
-public sealed class DaHubDbContext(DbContextOptions<DaHubDbContext> options) : DbContext(options)
+public sealed partial class DaHubDbContext(DbContextOptions<DaHubDbContext> options) : DbContext(options)
 {
     public const string Schema = "dahub_ita";
 
