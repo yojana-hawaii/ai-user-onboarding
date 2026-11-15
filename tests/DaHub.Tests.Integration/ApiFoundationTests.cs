@@ -25,6 +25,7 @@ public sealed class ApiFoundationTests
             {
                 endpoints.MapGet("/test/error", () => Task.FromException(new InvalidOperationException("sensitive synthetic detail"))).AllowAnonymous();
                 endpoints.MapGet("/test/validation", () => Task.FromException(new FluentValidation.ValidationException("sensitive synthetic input"))).AllowAnonymous();
+                endpoints.MapGet("/test/profile-validation", () => Task.FromException(new System.ComponentModel.DataAnnotations.ValidationException("sensitive synthetic input"))).AllowAnonymous();
                 endpoints.MapGet("/test/too-large", () => Task.FromException(new BadHttpRequestException("sensitive synthetic input", 413))).AllowAnonymous();
                 endpoints.MapGet("/test/binding", (int count) => Results.Ok(count)).AllowAnonymous();
                 endpoints.MapGet("/test/empty/{status:int}", (int status) => Results.StatusCode(status)).AllowAnonymous();
@@ -38,6 +39,7 @@ public sealed class ApiFoundationTests
     [InlineData("/api/auth/session", 401)]
     [InlineData("/test/error", 500)]
     [InlineData("/test/validation", 400)]
+    [InlineData("/test/profile-validation", 400)]
     [InlineData("/test/too-large", 413)]
     [InlineData("/test/binding?count=invalid", 400)]
     [InlineData("/test/empty/403", 403)]

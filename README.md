@@ -4,6 +4,10 @@ Angular frontend, ASP.NET Core API, domain/infrastructure libraries and tests. A
 
 See [Okta setup and session security](docs/authentication.md) to configure the opt-in sign-in integration, enroll verified identities and validate MFA in your tenant. The server-side session store supports one API instance and invalidates sessions on restart; live tenant validation remains required.
 
+WBS 1.2.2.3 now enforces verified-worker profile completeness and required primary assignments on tracked persistence writes, including later edits/removals. PendingHR imports may remain incomplete; lifecycle request writes require HR verification. A null manager with the HR attestation records the confirmed no-manager case. See the [profile guard and transaction contract](docs/database-foundation.md#verified-worker-profile-guard--wbs-1223). Authorized HR endpoints and verification auditing remain subsequent workflow work.
+
+November 14 profile validation: the full local functional gate, separate disposable SQL/SQL-security checks and redacted working-tree secret scan passed. Results: 28 unit, 146 credential-free integration, 12 frontend and 6 Chromium/Firefox/WebKit tests; coverage thresholds passed. The subsequent full pre-PR security gate passed: no source/history leaks, no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images. See [verification scope](docs/development-security.md#wbs-1223--verified-worker-profiles--november-14-2026); no schema migration or external action was executed.
+
 ## Prerequisites
 
 Docker Desktop running Linux containers, Git and **PowerShell 7**. No workstation .NET SDK, Node.js or npm installation is required. Production remains Windows Server 2022 / SQL Server 2022; Windows-specific integrations need separate validation.
