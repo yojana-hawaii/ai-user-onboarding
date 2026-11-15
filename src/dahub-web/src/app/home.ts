@@ -7,9 +7,8 @@ import { AppSession } from './permissions';
   selector: 'app-home',
   template: `
     <main>
-      <p>KALIHI-PALAMA HEALTH CENTER</p>
       <h1>DaHub</h1>
-      <p>Employee lifecycle management for Kalihi-Palama Health Center.</p>
+      <p>Employee lifecycle management.</p>
       @if (displayName()) {
         <p>Signed in as {{ displayName() }}.</p>
         <nav aria-label="Employee workflows">
@@ -19,6 +18,9 @@ import { AppSession } from './permissions';
             }
           }
         </nav>
+        @if (permissions().includes('templates.manage') && permissions().includes('users.manage')) {
+          <a href="/admin/organization-seeds">Organization seed data</a>
+        }
         @if (requestToken()) {
           <form method="post" action="/api/auth/logout">
             <input type="hidden" name="__RequestVerificationToken" [value]="requestToken()" />

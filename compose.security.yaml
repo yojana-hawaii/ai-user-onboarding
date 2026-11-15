@@ -19,6 +19,7 @@ services:
       - ./tests:/repo/tests:ro
       - ./scripts:/repo/scripts:ro
       - ./docs:/repo/docs:ro
+      - ./examples:/repo/examples:ro
       - ./.docker:/repo/.docker:ro
       - ./.github:/repo/.github:ro
       - ./.gitleaks.toml:/repo/.gitleaks.toml:ro

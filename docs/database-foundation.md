@@ -13,7 +13,7 @@ The model contains 307 columns covering lookup data, additive access templates, 
 - Worker types, workflow states, delegation date ranges, positive revisions, JSON revision/action payloads and nonblank urgent reasons use CHECK constraints. Approval, execution and resolution states remain independent. Scheduling fields preserve datetime2 UTC instants.
 - Filtered unique indexes protect non-null historical AD and Entra identifiers while allowing unknown values during import.
 - Seeds define seven roles, 19 permissions and the 39 documented role-permission grants. The WBS row mentioning 16 permissions is historical; the current v4.6 permission list and matrix govern. UrgentOperator grants only provisioning.urgent; no base role receives it, and approvals.bypass is absent.
-- Eight location seeds are inserted only when their SiteCode is missing. Existing lookup IDs, names and edits survive upgrade. Department OU paths, job titles and specialty catalogs require operational confirmation and are not invented.
+- Organization locations are no longer inserted by public migrations. Existing installed lookup IDs and edits remain untouched. Load approved locations, departments/OU paths, job titles, specialties and access templates through the explicit [organization seed upload](open-source.md); operational confirmation remains required. SQL tests create synthetic catalogs explicitly.
 
 ## Verified-worker profile guard — WBS 1.2.2.3
 

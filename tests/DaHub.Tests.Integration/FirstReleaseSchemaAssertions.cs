@@ -138,7 +138,7 @@ internal static class FirstReleaseSchemaAssertions
             WHERE r.Name=N'UrgentOperator'
             """);
         Assert.Equal(new[] { "provisioning.urgent" }, supplemental);
-        Assert.Equal(new[] { "710NK", "952NK", "ADMIN", "DT", "KAAAHI", "KOHOU", "MAIN", "VIRTUAL" },
+        Assert.Equal(new[] { "MAIN", "SECOND" },
             await StringsAsync(connection, "SELECT SiteCode FROM dahub_ita.Locations WHERE SiteCode<>N'TEST' ORDER BY SiteCode"));
     }
 
@@ -182,11 +182,11 @@ internal static class FirstReleaseSchemaAssertions
             """);
         await ViolationAsync(connection, """
             INSERT dahub_ita.EmployeeLocations (EmployeeId,LocationId,IsPrimary)
-            SELECT e.Id,l.Id,1 FROM dahub_ita.Employees e CROSS JOIN dahub_ita.Locations l WHERE e.Username=N'schema-worker' AND l.SiteCode=N'DT'
+            SELECT e.Id,l.Id,1 FROM dahub_ita.Employees e CROSS JOIN dahub_ita.Locations l WHERE e.Username=N'schema-worker' AND l.SiteCode=N'SECOND'
             """, 2601, 2627);
         await ExecuteAsync(connection, """
             INSERT dahub_ita.EmployeeLocations (EmployeeId,LocationId,IsPrimary)
-            SELECT e.Id,l.Id,0 FROM dahub_ita.Employees e CROSS JOIN dahub_ita.Locations l WHERE e.Username=N'schema-worker' AND l.SiteCode=N'DT';
+            SELECT e.Id,l.Id,0 FROM dahub_ita.Employees e CROSS JOIN dahub_ita.Locations l WHERE e.Username=N'schema-worker' AND l.SiteCode=N'SECOND';
             INSERT dahub_ita.EmployeeAccounts (EmployeeId,ADObjectGuid,EntraObjectId,Username,Email)
             SELECT Id,'00000000-0000-0000-0000-000000000001',N'00000000-0000-0000-0000-000000000002',Username,Email FROM dahub_ita.Employees WHERE Username=N'schema-worker';
             INSERT dahub_ita.EmployeeAccounts (EmployeeId,Username,Email)

@@ -1447,25 +1447,7 @@ namespace DaHub.Infrastructure.Persistence.Migrations
                 schema: "dahub_ita",
                 table: "UrgentExecutions",
                 columns: new[] { "RequestId", "Revision" });
-            // Insert missing sites by natural key; preserve existing lookup IDs and edits.
-            migrationBuilder.Sql("""
-                IF NOT EXISTS (SELECT 1 FROM [dahub_ita].[Locations] WHERE [SiteCode] = N'MAIN')
-                    INSERT [dahub_ita].[Locations] ([Name], [Address], [SiteCode]) VALUES (N'915 N King St — Main', N'915 N King St, Honolulu, HI 96817', N'MAIN');
-                IF NOT EXISTS (SELECT 1 FROM [dahub_ita].[Locations] WHERE [SiteCode] = N'710NK')
-                    INSERT [dahub_ita].[Locations] ([Name], [Address], [SiteCode]) VALUES (N'710 N King St', N'710 N King St, Honolulu, HI 96817', N'710NK');
-                IF NOT EXISTS (SELECT 1 FROM [dahub_ita].[Locations] WHERE [SiteCode] = N'DT')
-                    INSERT [dahub_ita].[Locations] ([Name], [Address], [SiteCode]) VALUES (N'89 S King St — Downtown', N'89 S King St, Honolulu, HI 96813', N'DT');
-                IF NOT EXISTS (SELECT 1 FROM [dahub_ita].[Locations] WHERE [SiteCode] = N'952NK')
-                    INSERT [dahub_ita].[Locations] ([Name], [Address], [SiteCode]) VALUES (N'952 N King St', N'952 N King St, Honolulu, HI 96817', N'952NK');
-                IF NOT EXISTS (SELECT 1 FROM [dahub_ita].[Locations] WHERE [SiteCode] = N'KAAAHI')
-                    INSERT [dahub_ita].[Locations] ([Name], [Address], [SiteCode]) VALUES (N'Kaaahi Clinic', N'Honolulu, HI', N'KAAAHI');
-                IF NOT EXISTS (SELECT 1 FROM [dahub_ita].[Locations] WHERE [SiteCode] = N'KOHOU')
-                    INSERT [dahub_ita].[Locations] ([Name], [Address], [SiteCode]) VALUES (N'Kohou Clinic', N'Honolulu, HI', N'KOHOU');
-                IF NOT EXISTS (SELECT 1 FROM [dahub_ita].[Locations] WHERE [SiteCode] = N'VIRTUAL')
-                    INSERT [dahub_ita].[Locations] ([Name], [Address], [SiteCode]) VALUES (N'Virtual / All Sites', NULL, N'VIRTUAL');
-                IF NOT EXISTS (SELECT 1 FROM [dahub_ita].[Locations] WHERE [SiteCode] = N'ADMIN')
-                    INSERT [dahub_ita].[Locations] ([Name], [Address], [SiteCode]) VALUES (N'Admin — Off-Site', NULL, N'ADMIN');
-                """);
+            // Organization catalogs are loaded explicitly through the seed importer.
 
             migrationBuilder.Sql("""
                 CREATE ROLE [dahub_app_runtime] AUTHORIZATION [dbo];
