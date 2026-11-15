@@ -53,6 +53,8 @@ public sealed class SqlJobStore(DaHubDbContext database) : IJobStore
         };
         var code = status == "Completed" ? null : JobRetryPolicy.SafeCode(result.Code) ?? "PermanentFailure";
         var deadline = retry ? now + JobRetryPolicy.Delay(job.AttemptCount) : job.ScheduledAt;
+        if (retry && result.RetryAtUtc is { Kind: DateTimeKind.Utc } retryAt && retryAt > deadline)
+            deadline = retryAt;
         // The attempt number fences late completions after recovery or manual requeue.
         var changed = await database.BackgroundJobs
             .Where(x => x.Id == job.Id && x.Status == "InProgress" && x.AttemptCount == job.AttemptCount && x.StartedAt == job.StartedAt)

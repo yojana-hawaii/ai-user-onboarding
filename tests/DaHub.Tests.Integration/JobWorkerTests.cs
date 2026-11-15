@@ -104,7 +104,7 @@ public sealed class JobWorkerTests
         Assert.Single(host.Services.GetServices<Microsoft.Extensions.Hosting.IHostedService>());
         using var scope = host.Services.CreateScope();
         Assert.IsType<SqlJobStore>(scope.ServiceProvider.GetRequiredService<IJobStore>());
-        Assert.Empty(scope.ServiceProvider.GetServices<IJobHandler>());
+        Assert.IsType<DaHub.Infrastructure.Notifications.NotificationRetryHandler>(Assert.Single(scope.ServiceProvider.GetServices<IJobHandler>()));
         Assert.Throws<InvalidOperationException>(() => DaHub.API.WorkerHost.Build([
             "--Database:ConnectionStringFile", "", "--ConnectionStrings:DaHub", ""]));
     }

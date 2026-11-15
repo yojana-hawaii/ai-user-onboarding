@@ -1,5 +1,5 @@
 # Explicit, isolated worker process. No OIDC client secret or API session material is mounted.
-# Apply migrations first. Default handlers are deliberately absent until workflow work is implemented.
+# Apply migrations first. Notification delivery defaults to Mock; lifecycle handlers remain deferred.
 services:
   worker:
     extends:

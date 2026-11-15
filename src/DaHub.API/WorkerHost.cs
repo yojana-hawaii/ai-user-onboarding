@@ -1,6 +1,7 @@
 using DaHub.Core.Jobs;
 using DaHub.Infrastructure.Jobs;
 using DaHub.Infrastructure.Persistence;
+using DaHub.Infrastructure.Notifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace DaHub.API;
@@ -25,6 +26,7 @@ public static class WorkerHost
                 sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", DaHubDbContext.Schema));
         });
         builder.Services.AddScoped<IJobStore, SqlJobStore>();
+        builder.Services.AddNotificationDelivery(builder.Configuration);
         builder.Services.AddHostedService<JobWorker>();
         return builder.Build();
     }

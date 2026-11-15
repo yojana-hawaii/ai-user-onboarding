@@ -1,5 +1,64 @@
 # Development security changes
 
+## WBS 1.8 notifications — November 14, 2026
+
+Implemented durable notification intent through `INotificationService`, a separate-worker
+NotificationRetry handler, opt-in Teams Workflows/SMTP STARTTLS relay/Slack webhook
+transports and provider-neutral mock SMS. Teams Workflows and Slack incoming webhooks
+were explicitly selected; SMS provider selection remains deferred. All channels default
+to a non-delivering Mock. Each attempt commits uncertain evidence before network I/O,
+then records only safe outcome codes and confirmed upstream acceptance. Redirects,
+cookies, HTTP URI logging, raw provider responses and password-based SMTP fallback are
+excluded. Approved destinations and protected webhook files are required for Live mode.
+Retries are bounded to four total attempts with 1/4/16-minute delays and later provider
+Retry-After values; uncertain results require reconciliation. See [notifications](notifications.md).
+
+`NotificationChannels` expands only the channel check constraint to Email/Teams/Slack/SMS;
+no columns or relationships changed. The schema fixture and locally ignored Data Model
+v4.8/ERD v4.8/SRS v1.10/PRD v1.5 were reconciled. ERD columns match all 32 schema-contract
+tables, WBS parent links resolve and leaf sums match WBS 1.8.1 (2), 1.8 (2.5) and Sprint 1
+(38.5 provisional effort days). The added Slack/SMS estimate is 0.75 effort days, not
+calendar duration. Requirements remain ignored and unpublished. An accidental local SRS
+digit replacement was repaired and checked for malformed requirement IDs, numeric
+headings, dates, site addresses and affected technical values before handoff.
+
+Local `scripts/verify.ps1` passed: 8 unit, 143 credential-free integration/protocol,
+12 frontend and all 6 Chromium/Firefox/WebKit tests, with builds/analyzers/lint/format
+and coverage gates intact. Two additional regression tests cover successful retry
+preserving earlier failures and storage outage preventing external sends; the final
+backend gate results are recorded below. Backend lines: API 95.11%, Infrastructure
+89.6%, Core 100%. Frontend statements/branches/functions/lines:
+96.03%/92.95%/96.29%/95.58%. WebKit is engine coverage; native Safari remains unverified.
+
+The final backend build/analyzer/coverage/format gate exited 0 with 8 unit tests and
+145 credential-free integration/protocol tests passing (the SQL-only test skipped).
+Coverage remained API 95.11%, Infrastructure 89.6% and Core 100%. No application code
+changed after the complete frontend/browser gate; the final two additions were tests.
+
+`scripts/test-dev-database.ps1` passed separately against a disposable database: migration
+upgrade/idempotence/rollback, expanded channel constraint, per-attempt notification
+evidence/exhaustion and persisted Retry-After alongside existing authorization/worker
+and runtime-permission probes. `scripts/test-dev-sql-security.ps1` passed encryption,
+feature and container restriction checks. These tests used synthetic data and no live
+notification transport. No persistent development/production database was migrated.
+
+The complete `scripts/verify-security.ps1` exited 0: source/history scans found no secrets
+(25 locally available commits), NuGet transitive audit found no advisories, npm reported
+zero vulnerabilities and backend/frontend/SQL/E2E images each reported zero
+HIGH/CRITICAL findings. Existing scanner isolation, thresholds, package locks, image
+pins and container restrictions remain intact. Lower-severity image findings are not
+claimed absent. The final redacted working-tree scan after documentation updates also passed with no leaks.
+
+Implementation is prepared for a local commit on `feature/1.8-notifications`, based on worker commit
+224282aa4c56bf5812fe066408614703e550f695. No PR, hosted CI, merge, main execution,
+branch-protection change, tenant mutation or live send is claimed. Live Teams/Slack/SMTP
+delivery and approved destinations remain open; SMTP uses an administrator-approved
+connector relay. SMS remains mock-only. Lifecycle events, duplicate/stale notice
+suppression/current recipient resolution and WBS 1.7 IT-alert wiring remain separate
+integration acceptance. Notification acceptance never closes pending approvals or EHR
+work and cannot delay access disabling. Uncertain external sends require reconciliation
+before manual replay; no external exactly-once guarantee is claimed.
+
 Recorded November 2, 2026. Scope: development environment and repository safeguards; not a production security certification.
 
 ## Implemented controls
@@ -216,3 +275,7 @@ No persistent database, tenant or deployed worker was changed. Only disposable d
 Final `scripts/verify.ps1` exited 0: 8 backend unit tests, 111 credential-free integration/protocol tests, 12 frontend tests and all 6 Chromium/Firefox/WebKit tests passed, with builds, analyzers, lint, formatting and coverage thresholds intact. The credential-free run skipped the SQL-only test; its separate disposable result is recorded above. Backend line coverage: API 95.09%, Infrastructure 88.21%, Core 100%. Frontend statements/branches/functions/lines: 96.03%/92.95%/96.29%/95.58%. Browser startup briefly logged proxy connection refusals while the isolated API became ready; the readiness wait and all six tests passed. Native Safari remains unverified. Worker Compose validation, WBS/ERD/schema consistency checks and `git diff --check` passed. Per-step integration acceptance in WBS 1.7.2.2 remains open until actual provisioning handlers wire the core retry result to step execution; registered synthetic handlers establish the infrastructure boundary only.
 
 Publication preparation: the complete security gate was repeated on November 14, 2026 and exited 0 with the same clean source/history, NuGet/npm and four-image results (24 scanned history commits). The earlier complete functional gate and separate SQL results above apply to the unchanged implementation; only handoff documentation changed afterward. README and AGENTS.md were reconciled, and develop was fetched and verified at 3b103026b10281da3832d8a855cf2548f47ba3c3 with no open PRs at preparation time. Develop remains unprotected. Publication and actual-head hosted evidence belong to the new PR and related Notion records; no merge or deployment is authorized by this preparation.
+
+### Requested security rerun and tracker handoff — November 14, 2026
+
+At the user's request, the complete `scripts/verify-security.ps1` gate was repeated after the WBS 1.8 implementation and exited 0: no source/history leaks (25 locally available commits), no transitive NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in backend/frontend/SQL/E2E images. No gate, image pin, lockfile or container/scanner isolation was weakened. This follow-up changes documentation/tracking only; functional/browser/disposable-SQL results above are earlier applicable evidence, not a new execution. README and AGENTS now record the current notification behavior, migration prerequisites, verification scope and live-provider/workflow limitations. Notion is reconciled to the same criteria; a local commit is authorized; pushing, PR publication and hosted CI remain separate.
