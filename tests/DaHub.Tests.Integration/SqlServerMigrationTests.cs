@@ -71,6 +71,9 @@ public sealed class SqlServerMigrationTests
             }
 
             Assert.Equal("Synthetic clinic", (await context.Locations.SingleAsync(x => x.SiteCode == "TEST")).Name);
+            Assert.Single(await context.Locations.ToArrayAsync());
+            // The public migrations must not install any organization's operational catalogs.
+            await ExecuteAsync(connection, "INSERT dahub_ita.Locations (Name,SiteCode) VALUES (N'Synthetic main',N'MAIN'),(N'Synthetic second',N'SECOND')");
             await FirstReleaseSchemaAssertions.VerifyAsync(connection);
             await VerifyAuthorizationInvalidationAsync(connection);
             await WorkerSqlAssertions.VerifyAsync(admin.ConnectionString);
@@ -100,13 +103,15 @@ public sealed class SqlServerMigrationTests
             var runtime = new SqlConnectionStringBuilder(admin.ConnectionString) { UserID = login, Password = password };
             await using (var runtimeContext = CreateContext(DatabaseConnection.Validate(runtime.ConnectionString, true)))
             {
-                Assert.Equal(9, await runtimeContext.Locations.CountAsync());
+                Assert.Equal(3, await runtimeContext.Locations.CountAsync());
                 await FirstReleaseSchemaAssertions.VerifyRuntimePermissionsAsync(runtimeContext);
                 runtimeContext.Departments.Add(new Department { Name = "Synthetic IT", OUPath = "OU=Synthetic,DC=example,DC=test" });
                 await runtimeContext.SaveChangesAsync();
                 await Assert.ThrowsAsync<SqlException>(() => runtimeContext.Database.ExecuteSqlRawAsync(
                     "CREATE TABLE dahub_ita.Forbidden (Id int NOT NULL)"));
             }
+
+            await EmployeeProfileSqlAssertions.VerifyAsync(runtime.ConnectionString);
 
             using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
             {
@@ -124,11 +129,13 @@ public sealed class SqlServerMigrationTests
                 Assert.Equal(HttpStatusCode.OK, ready.StatusCode);
             }
 
-            // Partial rollback must preserve the original lookup row and avoid duplicate site seeds on upgrade.
+            await SeedSqlAssertions.VerifyAsync(runtime.ConnectionString);
+
+            // Partial rollback must preserve operator data without installing any site seeds on upgrade.
             await context.GetService<IMigrator>().MigrateAsync(baseline);
             Assert.Equal("Synthetic clinic", (await context.Locations.AsNoTracking().SingleAsync(x => x.SiteCode == "TEST")).Name);
             await context.Database.MigrateAsync();
-            Assert.Equal(9, await context.Locations.CountAsync());
+            Assert.Equal(6, await context.Locations.CountAsync());
 
             // Exercise Down on this disposable database, never the developer's DaHub database.
             await context.GetService<IMigrator>().MigrateAsync("0");
@@ -141,7 +148,7 @@ public sealed class SqlServerMigrationTests
                 Assert.Equal(HttpStatusCode.OK, live.StatusCode);
             }
             await context.Database.MigrateAsync();
-            Assert.Equal(8, await context.Locations.CountAsync());
+            Assert.Empty(await context.Locations.ToArrayAsync());
         }
         finally
         {

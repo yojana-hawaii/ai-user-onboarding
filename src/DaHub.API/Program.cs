@@ -5,6 +5,7 @@ using DaHub.Infrastructure.Persistence;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using DaHub.Infrastructure.Notifications;
+using DaHub.API.OrganizationSeeds;
 
 if (args.Contains("--worker", StringComparer.Ordinal))
 {
@@ -27,6 +28,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddApiFoundation();
 builder.Services.AddOpenApi();
 builder.Services.AddNotificationQueue();
+builder.Services.AddScoped<SeedImporter>();
 builder.Services.AddDaHubAuthentication(builder.Configuration);
 builder.Services.AddDbContext<DaHubDbContext>(options =>
 {
@@ -70,6 +72,7 @@ app.Use(async (context, next) =>
     await next(context);
 });
 app.MapDaHubAuthentication();
+app.MapOrganizationSeeds();
 app.MapFallback("{**path}", () => Results.NotFound()).AllowAnonymous();
 
 app.MapGet("/api/health/live", (HttpContext context) =>

@@ -122,7 +122,7 @@ public sealed class SafeExceptionHandler : IExceptionHandler
         var status = exception switch
         {
             BadHttpRequestException bad => bad.StatusCode,
-            FluentValidation.ValidationException => StatusCodes.Status400BadRequest,
+            FluentValidation.ValidationException or System.ComponentModel.DataAnnotations.ValidationException => StatusCodes.Status400BadRequest,
             _ => StatusCodes.Status500InternalServerError
         };
         context.Response.StatusCode = status;

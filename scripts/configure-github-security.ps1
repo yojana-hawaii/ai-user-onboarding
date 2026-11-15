@@ -1,4 +1,8 @@
-param([switch]$Apply)
+param(
+    [Parameter(Mandatory)][ValidatePattern('^[A-Za-z0-9][A-Za-z0-9-]{0,38}$')][string]$Owner,
+    [Parameter(Mandatory)][ValidatePattern('^[A-Za-z0-9_.-]+$')][string]$Repository,
+    [switch]$Apply
+)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
@@ -19,16 +23,16 @@ try {
     }
     if (-not $credential['password']) { throw 'GitHub credential is unavailable.' }
     $headers = @{Authorization='Bearer '+$credential['password']; Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'}
-    $api = 'https://api.github.com/repos/yojana-hawaii/ai-user-onboarding'
-    $repository = Invoke-RestMethod $api -Headers $headers
-    if ($Apply -and -not $repository.permissions.admin) { throw 'Repository administrator access is required.' }
+    $api = "https://api.github.com/repos/$Owner/$Repository"
+    $repositoryInfo = Invoke-RestMethod $api -Headers $headers
+    if ($Apply -and -not $repositoryInfo.permissions.admin) { throw 'Repository administrator access is required.' }
     if ($Apply) {
         Invoke-RestMethod "$api/vulnerability-alerts" -Headers $headers -Method Put | Out-Null
         Invoke-RestMethod "$api/automated-security-fixes" -Headers $headers -Method Put | Out-Null
         $workflowPermissions = @{default_workflow_permissions='read'; can_approve_pull_request_reviews=$false} | ConvertTo-Json
         Invoke-RestMethod "$api/actions/permissions/workflow" -Headers $headers -Method Put -ContentType application/json -Body $workflowPermissions | Out-Null
 
-        $branch = $repository.default_branch
+        $branch = $repositoryInfo.default_branch
         $existing = $null
         try { $existing = Invoke-RestMethod "$api/branches/$branch/protection" -Headers $headers }
         catch { if ([int]$_.Exception.Response.StatusCode -ne 404) { throw 'Cannot inspect existing branch protection.' } }
@@ -61,8 +65,8 @@ try {
     $security = (Invoke-RestMethod $api -Headers $headers).security_and_analysis
     $permissions = Invoke-RestMethod "$api/actions/permissions/workflow" -Headers $headers
     [pscustomobject]@{
-        Repository=$repository.full_name
-        Public=(-not $repository.private)
+        Repository=$repositoryInfo.full_name
+        Public=(-not $repositoryInfo.private)
         SecretScanning=$security.secret_scanning.status
         PushProtection=$security.secret_scanning_push_protection.status
         DependabotSecurityUpdates=$security.dependabot_security_updates.status
