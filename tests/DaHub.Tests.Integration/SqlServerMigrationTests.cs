@@ -108,6 +108,8 @@ public sealed class SqlServerMigrationTests
                     "CREATE TABLE dahub_ita.Forbidden (Id int NOT NULL)"));
             }
 
+            await EmployeeProfileSqlAssertions.VerifyAsync(runtime.ConnectionString);
+
             using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Development");

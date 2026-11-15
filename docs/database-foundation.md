@@ -9,11 +9,19 @@ The model contains 307 columns covering lookup data, additive access templates, 
 - All FKs use NO ACTION deletion, preserving referenced history. Composite request/revision FKs prevent approvals or urgent authorizations from targeting nonexistent revisions.
 - EmploymentPeriods uses a composite account/employee FK and a supporting alternate key on EmployeeAccounts to enforce the documented account-ownership rule. This strengthens the illustrative single-column DDL without changing its columns.
 - Exact issuer/subject keys use Latin1_General_100_BIN2 collation and a unique constraint. Duplicate keys remain reserved even after a link is revoked. Contacts such as UPN do not automatically link accounts or grant roles.
-- The four employee-assignment junctions have composite primary keys and filtered unique indexes permitting at most one primary assignment. Requiring a primary assignment before HR verification remains application validation.
+- The four employee-assignment junctions have composite primary keys and filtered unique indexes permitting at most one primary assignment. The application persistence guard below enforces required primaries before HR verification and on subsequent profile/assignment writes.
 - Worker types, workflow states, delegation date ranges, positive revisions, JSON revision/action payloads and nonblank urgent reasons use CHECK constraints. Approval, execution and resolution states remain independent. Scheduling fields preserve datetime2 UTC instants.
 - Filtered unique indexes protect non-null historical AD and Entra identifiers while allowing unknown values during import.
 - Seeds define seven roles, 19 permissions and the 39 documented role-permission grants. The WBS row mentioning 16 permissions is historical; the current v4.6 permission list and matrix govern. UrgentOperator grants only provisioning.urgent; no base role receives it, and approvals.bypass is absent.
 - Eight location seeds are inserted only when their SiteCode is missing. Existing lookup IDs, names and edits survive upgrade. Department OU paths, job titles and specialty catalogs require operational confirmation and are not invented.
+
+## Verified-worker profile guard — WBS 1.2.2.3
+
+`EmployeeProfile.ValidateVerified` requires nonblank legal names, username and email; FT/PT/Contractor/Volunteer/Student/Temporary; a start date; an optional end date no earlier than the start; and HR verification evidence. A null manager with the HR attestation represents the explicitly confirmed no-manager case. A selected manager must exist (SQL FK) and cannot be the worker. Exactly one primary department, location and job title is required. Specialties are optional, with exactly one primary when selected. No end date is mandatory for a particular worker type.
+
+Both synchronous and asynchronous `DaHubDbContext.SaveChanges` validate the resulting stored profile, including assignments not loaded into the tracker. PendingHR imports may retain missing dates and assignments; lifecycle request writes require Verified. Verification, later profile edits and assignment additions/removals are checked within a serializable transaction before commit. Caller-owned transactions must be serializable with savepoints; failures roll back the save without accepting tracked changes. Discard/reload the attempted tracker state after a failure. Callers retry a deadlocked transaction as a whole; the guard never retries a partial write. Null manager confirmation is covered by VerifiedByUPN/VerifiedAt rather than a new schema field.
+
+These gates protect tracked application writes. Raw SQL, `ExecuteUpdate` and `ExecuteDelete` bypass SaveChanges and must not be used for profile/workflow mutations. Controlled migrations/maintenance must enforce the same rules. HR authorization endpoints, stable-actor WorkerVerified audit generation, import and provisioning workflows remain separate work; the guard grants no authority to verify a worker. Schema, columns, relationships and migrations are unchanged. No persistent database migration or external action was executed.
 
 ## Local setup
 
