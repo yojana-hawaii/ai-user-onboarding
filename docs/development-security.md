@@ -49,7 +49,7 @@ HIGH/CRITICAL findings. Existing scanner isolation, thresholds, package locks, i
 pins and container restrictions remain intact. Lower-severity image findings are not
 claimed absent. The final redacted working-tree scan after documentation updates also passed with no leaks.
 
-Implementation is prepared for a local commit on `feature/1.8-notifications`, based on worker commit
+Implementation is committed locally as `a27702b7a7b993f9d701963e6ac9c62eaec01adb` on `feature/1.8-notifications`, based on worker commit
 224282aa4c56bf5812fe066408614703e550f695. No PR, hosted CI, merge, main execution,
 branch-protection change, tenant mutation or live send is claimed. Live Teams/Slack/SMTP
 delivery and approved destinations remain open; SMTP uses an administrator-approved
@@ -279,3 +279,13 @@ Publication preparation: the complete security gate was repeated on November 14,
 ### Requested security rerun and tracker handoff — November 14, 2026
 
 At the user's request, the complete `scripts/verify-security.ps1` gate was repeated after the WBS 1.8 implementation and exited 0: no source/history leaks (25 locally available commits), no transitive NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in backend/frontend/SQL/E2E images. No gate, image pin, lockfile or container/scanner isolation was weakened. This follow-up changes documentation/tracking only; functional/browser/disposable-SQL results above are earlier applicable evidence, not a new execution. README and AGENTS now record the current notification behavior, migration prerequisites, verification scope and live-provider/workflow limitations. Notion is reconciled to the same criteria; a local commit is authorized; pushing, PR publication and hosted CI remain separate.
+
+
+### Committed-head pre-PR preparation — November 14, 2026
+
+Pre-PR preparation on November 14 rechecked local implementation commit a27702b7a7b993f9d701963e6ac9c62eaec01adb: the complete security gate exited 0, with no source/history leaks (26 commits), no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images. Docker startup failures from the commit handoff are resolved. Earlier functional/browser/disposable-SQL results remain applicable and were not rerun. No open PRs were found through the GitHub API; remote develop remains 3b103026b10281da3832d8a855cf2548f47ba3c3 and does not contain worker prerequisite 224282aa4c56bf5812fe066408614703e550f695. A future review must account for that prerequisite. No push, PR, merge or live action occurred. This documentation follow-up remains uncommitted.
+
+WBS parent links and leaf totals were rechecked: 1.8.1 = 2, 1.8 = 2.5 and Sprint 1 = 38.5 provisional effort days. The application channel constraint matches the schema fixture. Only README, AGENTS and this security record changed during preparation; ignored requirements remain unpublished. No persistent migration, deployment or live notification was executed.
+
+
+Publication preparation: the user authorized committing this documentation follow-up, pushing feature/1.8-notifications and opening a draft PR. The review base is feature/1.7-background-worker at 224282aa4c56bf5812fe066408614703e550f695 because prerequisite PR #27 is closed and unmerged. Integrate that prerequisite into develop before retargeting; no merge or deployment is authorized. Final published head, PR and current-head CI evidence belong in Notion after publication. The preceding complete security gate and earlier functional/SQL results apply; this follow-up changes documentation only.
