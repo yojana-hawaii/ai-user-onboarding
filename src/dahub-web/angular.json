@@ -59,7 +59,17 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "tsconfig.spec.json",
-            "runner": "vitest"
+            "runner": "vitest",
+            "coverage": true,
+            "coverageInclude": ["src/app/**/*.ts"],
+            "coverageExclude": ["src/**/*.spec.ts"],
+            "coverageReporters": ["text", "html", "lcov", "json-summary"],
+            "coverageThresholds": {
+              "lines": 80,
+              "functions": 80,
+              "branches": 80,
+              "statements": 80
+            }
           }
         }
       }

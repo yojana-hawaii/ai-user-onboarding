@@ -1,0 +1,15 @@
+# Explicit, isolated worker process. No OIDC client secret or API session material is mounted.
+# Apply migrations first. Notification delivery defaults to Mock; lifecycle handlers remain deferred.
+services:
+  worker:
+    extends:
+      file: compose.yaml
+      service: api
+    profiles: [worker]
+    command: dotnet run --project src/DaHub.API --no-launch-profile -- --worker
+    ports: !reset []
+    secrets: !override [database_connection]
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      DAHUB_ARTIFACTS_PATH: /artifacts/worker
+      Database__ConnectionStringFile: /run/secrets/database_connection

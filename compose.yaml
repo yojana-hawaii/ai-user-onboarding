@@ -35,6 +35,8 @@ x-backend: &backend
     - ./DaHub.slnx:/workspace/DaHub.slnx:ro
     - ./Directory.Build.props:/workspace/Directory.Build.props:ro
     - ./global.json:/workspace/global.json:ro
+    - ./scripts/backend-check.sh:/workspace/scripts/backend-check.sh:ro
+    - ./.config:/workspace/.config:ro
     - backend_artifacts:/artifacts
     - nuget_secure:/nuget
 
@@ -81,11 +83,18 @@ services:
 
   api:
     <<: *backend
+    tmpfs:
+      - /tmp:mode=1777,nosuid,nodev,size=536870912
+      - /run/dahub:uid=1654,gid=1654,mode=0700,nosuid,nodev
+      - /logs:uid=1654,gid=1654,mode=0700,nosuid,nodev,size=167772160
     command: dotnet run --project src/DaHub.API --no-launch-profile --urls https://0.0.0.0:5081
     environment:
       <<: *backend-environment
       DAHUB_ARTIFACTS_PATH: /artifacts/api
       ASPNETCORE_ENVIRONMENT: Development
+      Https__Port: '5081'
+      DirectoryHealth__Mode: Mock
+      Logging__Directory: /logs
       ASPNETCORE_Kestrel__Certificates__Default__Path: /run/secrets/tls_certificate
       ASPNETCORE_Kestrel__Certificates__Default__KeyPath: /run/secrets/tls_private_key
     ports:
@@ -111,6 +120,9 @@ services:
       - ./src/dahub-web/tsconfig.json:/workspace/src/dahub-web/tsconfig.json:ro
       - ./src/dahub-web/tsconfig.app.json:/workspace/src/dahub-web/tsconfig.app.json:ro
       - ./src/dahub-web/tsconfig.spec.json:/workspace/src/dahub-web/tsconfig.spec.json:ro
+      - ./src/dahub-web/eslint.config.mjs:/workspace/src/dahub-web/eslint.config.mjs:ro
+      - ./src/dahub-web/e2e:/workspace/src/dahub-web/e2e:ro
+      - ./src/dahub-web/playwright.config.ts:/workspace/src/dahub-web/playwright.config.ts:ro
       - ./src/dahub-web/.prettierrc.json:/workspace/src/dahub-web/.prettierrc.json:ro
       - web_modules_secure:/workspace/src/dahub-web/node_modules
       - web_cache_secure:/workspace/src/dahub-web/.angular
@@ -121,6 +133,22 @@ services:
   backend-check:
     <<: *backend
     profiles: [checks]
+
+  database-migrate:
+    <<: *backend
+    profiles: [database-tools]
+    environment:
+      <<: *backend-environment
+      DAHUB_MIGRATION_CONNECTION_FILE: /run/secrets/database_migration
+    secrets: [database_migration]
+    command: sh -c 'dotnet tool restore && dotnet restore src/DaHub.Infrastructure && dotnet ef database update --project src/DaHub.Infrastructure'
+
+  database-check:
+    <<: *backend
+    profiles: [database-checks]
+    env_file:
+      - path: ./.env.sql
+        required: true
 
   web-check:
     <<: *frontend
@@ -134,13 +162,21 @@ services:
       - ./src/dahub-web/tsconfig.json:/workspace/src/dahub-web/tsconfig.json:ro
       - ./src/dahub-web/tsconfig.app.json:/workspace/src/dahub-web/tsconfig.app.json:ro
       - ./src/dahub-web/tsconfig.spec.json:/workspace/src/dahub-web/tsconfig.spec.json:ro
+      - ./src/dahub-web/eslint.config.mjs:/workspace/src/dahub-web/eslint.config.mjs:ro
+      - ./src/dahub-web/e2e:/workspace/src/dahub-web/e2e:ro
+      - ./src/dahub-web/playwright.config.ts:/workspace/src/dahub-web/playwright.config.ts:ro
       - ./src/dahub-web/.prettierrc.json:/workspace/src/dahub-web/.prettierrc.json:ro
       - check_modules_secure:/workspace/src/dahub-web/node_modules
       - check_cache_secure:/workspace/src/dahub-web/.angular
       - check_dist_secure:/workspace/src/dahub-web/dist
       - npm_cache_secure:/home/node/.npm
+      - check_coverage:/workspace/src/dahub-web/coverage
 
 secrets:
+  database_connection:
+    file: ./.secrets/database-connection
+  database_migration:
+    file: ./.secrets/database-migration
   tls_certificate:
     file: ./.certs/fullchain.pem
   tls_private_key:
@@ -157,3 +193,5 @@ volumes:
   check_cache_secure:
   check_dist_secure:
   npm_cache_secure:
+
+  check_coverage:

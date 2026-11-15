@@ -89,3 +89,7 @@ requirements/
 
 # Local HTTPS private material
 .certs/
+.secrets/
+
+**/playwright-report/
+**/test-results/

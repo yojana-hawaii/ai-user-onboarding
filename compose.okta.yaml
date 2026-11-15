@@ -1,0 +1,15 @@
+# Opt-in only: copy settings to the ignored root .env and protect .secrets/okta-client-secret.
+services:
+  api:
+    environment:
+      Okta__Enabled: 'true'
+      Okta__Issuer: ${DAHUB_OKTA_ISSUER:?Set DAHUB_OKTA_ISSUER in .env}
+      Okta__ClientId: ${DAHUB_OKTA_CLIENT_ID:?Set DAHUB_OKTA_CLIENT_ID in .env}
+      Okta__PublicOrigin: ${DAHUB_PUBLIC_ORIGIN:-https://localhost:4200}
+      Okta__ClientSecretFile: /run/secrets/okta_client_secret
+    secrets:
+      - okta_client_secret
+
+secrets:
+  okta_client_secret:
+    file: ./.secrets/okta-client-secret

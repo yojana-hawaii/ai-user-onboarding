@@ -1,5 +1,64 @@
 # Development security changes
 
+## WBS 1.8 notifications — November 14, 2026
+
+Implemented durable notification intent through `INotificationService`, a separate-worker
+NotificationRetry handler, opt-in Teams Workflows/SMTP STARTTLS relay/Slack webhook
+transports and provider-neutral mock SMS. Teams Workflows and Slack incoming webhooks
+were explicitly selected; SMS provider selection remains deferred. All channels default
+to a non-delivering Mock. Each attempt commits uncertain evidence before network I/O,
+then records only safe outcome codes and confirmed upstream acceptance. Redirects,
+cookies, HTTP URI logging, raw provider responses and password-based SMTP fallback are
+excluded. Approved destinations and protected webhook files are required for Live mode.
+Retries are bounded to four total attempts with 1/4/16-minute delays and later provider
+Retry-After values; uncertain results require reconciliation. See [notifications](notifications.md).
+
+`NotificationChannels` expands only the channel check constraint to Email/Teams/Slack/SMS;
+no columns or relationships changed. The schema fixture and locally ignored Data Model
+v4.8/ERD v4.8/SRS v1.10/PRD v1.5 were reconciled. ERD columns match all 32 schema-contract
+tables, WBS parent links resolve and leaf sums match WBS 1.8.1 (2), 1.8 (2.5) and Sprint 1
+(38.5 provisional effort days). The added Slack/SMS estimate is 0.75 effort days, not
+calendar duration. Requirements remain ignored and unpublished. An accidental local SRS
+digit replacement was repaired and checked for malformed requirement IDs, numeric
+headings, dates, site addresses and affected technical values before handoff.
+
+Local `scripts/verify.ps1` passed: 8 unit, 143 credential-free integration/protocol,
+12 frontend and all 6 Chromium/Firefox/WebKit tests, with builds/analyzers/lint/format
+and coverage gates intact. Two additional regression tests cover successful retry
+preserving earlier failures and storage outage preventing external sends; the final
+backend gate results are recorded below. Backend lines: API 95.11%, Infrastructure
+89.6%, Core 100%. Frontend statements/branches/functions/lines:
+96.03%/92.95%/96.29%/95.58%. WebKit is engine coverage; native Safari remains unverified.
+
+The final backend build/analyzer/coverage/format gate exited 0 with 8 unit tests and
+145 credential-free integration/protocol tests passing (the SQL-only test skipped).
+Coverage remained API 95.11%, Infrastructure 89.6% and Core 100%. No application code
+changed after the complete frontend/browser gate; the final two additions were tests.
+
+`scripts/test-dev-database.ps1` passed separately against a disposable database: migration
+upgrade/idempotence/rollback, expanded channel constraint, per-attempt notification
+evidence/exhaustion and persisted Retry-After alongside existing authorization/worker
+and runtime-permission probes. `scripts/test-dev-sql-security.ps1` passed encryption,
+feature and container restriction checks. These tests used synthetic data and no live
+notification transport. No persistent development/production database was migrated.
+
+The complete `scripts/verify-security.ps1` exited 0: source/history scans found no secrets
+(25 locally available commits), NuGet transitive audit found no advisories, npm reported
+zero vulnerabilities and backend/frontend/SQL/E2E images each reported zero
+HIGH/CRITICAL findings. Existing scanner isolation, thresholds, package locks, image
+pins and container restrictions remain intact. Lower-severity image findings are not
+claimed absent. The final redacted working-tree scan after documentation updates also passed with no leaks.
+
+Implementation is committed locally as `a27702b7a7b993f9d701963e6ac9c62eaec01adb` on `feature/1.8-notifications`, based on worker commit
+224282aa4c56bf5812fe066408614703e550f695. No PR, hosted CI, merge, main execution,
+branch-protection change, tenant mutation or live send is claimed. Live Teams/Slack/SMTP
+delivery and approved destinations remain open; SMTP uses an administrator-approved
+connector relay. SMS remains mock-only. Lifecycle events, duplicate/stale notice
+suppression/current recipient resolution and WBS 1.7 IT-alert wiring remain separate
+integration acceptance. Notification acceptance never closes pending approvals or EHR
+work and cannot delay access disabling. Uncertain external sends require reconciliation
+before manual replay; no external exactly-once guarantee is claimed.
+
 Recorded November 2, 2026. Scope: development environment and repository safeguards; not a production security certification.
 
 ## Implemented controls
@@ -77,3 +136,164 @@ Reproduce from PowerShell 7 with Docker Desktop running Linux containers:
 ./scripts/test-dev-sql-security.ps1
 ./scripts/verify-security.ps1
 ```
+## Cross-browser test image — November 8, 2026
+
+The first Ubuntu-based Playwright image failed the HIGH/CRITICAL gate with four HIGH package findings: CVE-2026-109518 in apt/libapt-pkg6.0t64, and CVE-2025-3887 in gstreamer1.0-plugins-bad/libgstreamer-plugins-bad1.0-0. WebKit links the affected codec parser library, so removing the package would break the test engine.
+
+A Debian 13 candidate supplied the corrected GStreamer package (1.26.2-3+deb13u3) and passed all six browser smoke tests, but its image scan reported 291 HIGH/CRITICAL package findings. That candidate was rejected. The final E2E Dockerfile uses the official digest-pinned Playwright Ubuntu 26.04 image while retaining the project's Node 24 runtime. APT and libapt-pkg7.0 are upgraded to the scanner-listed fixed version 3.2.1ubuntu0.1. See the [Debian CVE record](https://security-tracker.debian.org/tracker/CVE-2025-3887) and [Playwright supported systems](https://playwright.dev/docs/intro#system-requirements). Runtime tests retain the non-root user, read-only source/root filesystem, dropped capabilities, writable temporary browser profiles, and dedicated network without published ports or secret mounts.
+
+Security verification includes backend, frontend, SQL and E2E images. Public image archives are copied once into Docker-local scanner storage before analysis to avoid slow Windows bind-mount access, and host/cache copies are removed afterward. The scanner receives exported images rather than a Docker socket or credentials. Its 20-minute operational timeout accommodates the larger browser image; the HIGH/CRITICAL failure threshold remains enforced.
+
+Verified locally on November 8, 2026 (Pacific/Honolulu): the complete updated verify-security.ps1 command passed. Working-tree/history secret scans and NuGet audit passed; npm reported no HIGH/CRITICAL findings and 15 moderate lint-tool dependency findings. Backend, frontend, SQL and the final E2E image each reported zero HIGH/CRITICAL findings. All six Chromium/Firefox/WebKit smoke tests passed again on the final APT-patched image. SQL encryption/container checks and the isolated migration/runtime-permission test also passed. No vulnerability exception was added.
+
+GitHub inspection during this work found main protected and develop unprotected. The new PR targets develop, so failing checks are not yet an enforced merge blocker there. This observation is tracked in the Notion lint/CI records.
+
+## Okta, session and dependency verification — November 9, 2026
+
+Verified locally on November 9, 2026 (Pacific/Honolulu), against the working tree based on `ee99fb4667aa0d91bb1b1eb9dfb55c4c31b615e1`. The authentication and remediation changes are uncommitted; no new PR or hosted CI result is asserted by this record.
+
+### Complete security suite
+
+`pwsh -NoProfile -File scripts/verify-security.ps1` completed with exit code 0. It rebuilt the scanner and all four development images, scanned actual exported image archives with pinned Trivy 0.76.1 and a refreshed vulnerability database, and removed its temporary host/cache archives. Existing HIGH/CRITICAL gates, including unfixed findings and operational scanner failures, were retained.
+
+| Check | Result |
+| --- | --- |
+| Working-tree Gitleaks scan | No leaks |
+| All fetched Git history | No leaks; 11 commits scanned |
+| NuGet transitive audit | Passed; no advisories |
+| Backend image | 0 HIGH/CRITICAL findings |
+| Frontend image | 0 HIGH/CRITICAL findings |
+| SQL Server image | 0 HIGH/CRITICAL findings |
+| Browser E2E image | 0 HIGH/CRITICAL findings |
+
+The images' lower-severity findings were outside the configured HIGH/CRITICAL report filter; these results do not claim zero vulnerabilities at every severity. No image changes or vulnerability exceptions were required in this run. Application source/NuGet dependencies are mounted/restored by development containers rather than baked into these tool images; source/dependency audits complement the image scans.
+
+### npm finding and remediation
+
+The initial suite's npm audit passed its HIGH/CRITICAL threshold but reported **10 moderate findings**, all stemming from `minimatch` 10.2.6 through ESLint, `@eslint/config-array` and `@typescript-eslint/typescript-estree`. [GHSA-g3hv-75wg-m249 / CVE-2026-118764](https://github.com/advisories/GHSA-g3hv-75wg-m249) identifies an attacker-controlled glob-pattern amplification problem and lists 11.0.1 as fixed.
+
+`src/dahub-web/package.json` now overrides only `minimatch` versions `>=10.0.0 <11.0.1` to **11.0.1**, with the corresponding integrity-pinned lockfile update. Its new nonrecursive glob-matching dependency is included in the lockfile. The fixed release supports the project's Node 24 runtime. The override is explicit because current lint packages request the affected major; remove/revisit it when those upstream dependencies adopt a corrected release. The reported `npm audit fix --force` ESLint downgrade was not applied, and no advisory was suppressed.
+
+Follow-up verification on the remediated lockfile used a clean `npm ci`, Angular ESLint with zero allowed warnings, production build, all 8 component/interceptor/routing tests, Prettier, and an unfiltered `npm audit --package-lock-only`: all passed, with **zero npm vulnerabilities**. Frontend coverage remained above every 80% gate (92.85% statements, 89.74% branches, 92.85% functions, 92.68% lines). All 6 Chromium/Firefox/WebKit smoke tests passed again after the dependency change.
+
+### Authentication evidence and release limits
+
+The full `scripts/verify.ps1` gate passed for the authentication implementation before this dependency-only remediation: 8 backend unit tests, 34 credential-free API/protocol integration tests, 8 frontend tests and 6 browser smoke tests. Backend line coverage: API 94.21%, Infrastructure 95.87%, Core 100%. Backend code did not change during this follow-up; the affected frontend checks and browser suite were repeated after the dependency fix.
+
+Signed synthetic-provider tests cover valid authorization code + PKCE, invalid issuer/audience/signature/lifetime/state/nonce, missing correlation cookie, unknown and exact-subject mismatches, local user/link/version revocation, idle timeout/sliding activity, CSRF rejection and logout replay. Credentials and access/refresh tokens are not exposed to Angular. Raw OIDC protocol logging is disabled, and only a server-side ID token is retained for provider logout. See [authentication configuration](authentication.md).
+
+The process-local store supports one API instance; restart/eviction invalidates sessions. Actual Okta application registration, MFA allowed/denied outcomes, live logout and expired-session return journey, enrollment/bootstrap administration, local permission policies and production secret/TLS controls remain release work. Native Safari was not tested. The real SQL migration/runtime-security probes were not rerun: there were no schema or SQL-environment changes, and the credential-free gate skips that isolated SQL test. Image scans do not establish database runtime security or production readiness.
+
+Related Notion records: [Okta sign-in and local identity links](https://app.notion.com/p/412ee4cf5eb481d293a2e5109ed3230b) and [CI pipeline](https://app.notion.com/p/412ee4cf5eb4817da8c1f9fea9941ab5). Their updates distinguish completed local implementation/tests from outstanding live-provider and hosted acceptance criteria.
+
+## PR preparation verification — November 10, 2026
+
+Both complete local gates were repeated on the final authentication/remediation tree before PR preparation. `scripts/verify.ps1` passed: 8 unit tests, 34 credential-free integration/protocol tests, 8 frontend tests and all 6 Chromium/Firefox/WebKit smoke tests, plus builds, lint, formatting and coverage gates. One real-SQL test was intentionally skipped. Backend lines: API 94.21%, Infrastructure 95.87%, Core 100%; frontend statements/branches/functions/lines: 92.85%/89.74%/92.85%/92.68%.
+
+`scripts/verify-security.ps1` also passed in full after the minimatch remediation: working-tree and fetched-history Gitleaks scans found no leaks (15 fetched commits), NuGet audit found no advisories, npm reported zero vulnerabilities, and backend/frontend/SQL/E2E images each reported zero HIGH/CRITICAL findings. The root `AGENTS.md` guide is now included in the working-tree scanner mounts. No severity threshold, suppression or security exception was changed. Temporary image archives were cleaned up.
+
+The guide was moved from ignored `requirements/agents.md` to root `AGENTS.md` at the user's request. Other requirements files remain ignored. The authentication branch is `feature/1.3-okta-server-sessions`, stacked on the still-open prerequisite PR #17; merge that prerequisite first and retarget the authentication PR to develop. Hosted checks on the new PR head are separate evidence. The live-provider, single-instance, SQL-runtime and native-Safari limitations above still apply.
+
+## Sprint 1 WBS 1.4 — local RBAC, November 10, 2026
+
+Implemented AUTH-03/SEC-07 local permission resolution and server-side session caching, permission attributes/dynamic policies, 401/403 ProblemDetails, Angular guards and filtered navigation. APR-01/APR-04/OFF-08 authority policies separately enforce own/backup delegation, current-revision urgent execution with both grants and a reason, and IT retention permission. All 19 seeded permission keys are exercised for all seven local roles through the real API cookie/authorization pipeline. Provider groups remain excluded; Admin has no wildcard, urgency or retention entitlement by default.
+
+Migration `InvalidateAuthorization` adds six transactional SQL triggers that increment affected users' versions for local authorization changes. EF uses the trigger-compatible SQL write path. Already cached grants are denied on the next protected request after a change; new sign-in is required. The permission join runs at login; subsequent requests retain the local account/link/version check. See [implementation and deployment details](authentication.md#local-rbac--wbs-14).
+
+The complete local `scripts/verify.ps1` gate passed: 8 unit tests, 52 credential-free integration/protocol tests, 12 frontend tests and all 6 Chromium/Firefox/WebKit smoke tests. One SQL-only test was intentionally skipped by that credential-free run and passed separately through `scripts/test-dev-database.ps1`. Backend line coverage: API 94.56%, Infrastructure 96.76%, Core 100%. Frontend statements/branches/functions/lines: 96.03%/92.95%/96.29%/95.58%. Release builds, analyzers, formatting, lint and all existing coverage gates passed. Browser smoke tests exercise the existing home/proxy scaffold; Angular router tests exercise RBAC route denial/allowance and navigation. Native Safari on macOS remains unverified.
+
+`scripts/test-dev-sql-security.ps1` passed SQL encryption, feature, helper-removal, TLS and container restriction checks. The isolated database test verified migration upgrade/down/reapply, schema constraints, runtime permissions and trigger invalidation/rollback using synthetic data. No persistent development or production database was migrated; no tenant, real user, provider or privileged external system was changed.
+
+Authorization HTTP tests use synthetic enrolled identities and EF InMemory. SQL trigger/persistence behavior is separately tested on real SQL Server. This implements authorization infrastructure and resource-policy checks; employee workflows, role/enrollment administration and their stable-actor audit, approval, urgent-execution recording/notifications, worker rechecks and recovery remain separate implementation work. The UI destinations are workflow placeholders. Existing one-API-instance session-store and live Okta/MFA release limitations continue to apply.
+
+The local implementation was committed as `53b5d3bbf10c5216fb1311596136fa49a6c13ffe` on `feature/1.4-rbac`, based on authentication commit `bd6fd8e`. [Draft PR #23](https://github.com/yojana-hawaii/ai-user-onboarding/pull/23) targets the authentication branch. Initial hosted build/test/format and security jobs started; no passing hosted result, merge protection or main execution is claimed here. Follow-up documentation may advance the PR head; inspect exact-head checks. No requirement version, schema column, relationship, estimate, or deferred scope was changed; the ignored planning requirements remain unpublished.
+
+The complete `scripts/verify-security.ps1` suite exited 0: working-tree and Git-history scans found no leaks (16 locally available commits), transitive NuGet auditing found no advisories, npm reported zero vulnerabilities, and backend/frontend/SQL/E2E images each reported zero HIGH/CRITICAL findings. This does not claim zero lower-severity image findings. Existing scanner isolation, pinned images, dependency locks, severity gates and coverage thresholds were preserved; no dependency change, advisory suppression or gate reduction was needed. Temporary exported image archives were cleaned up.
+
+## WBS 1.4 acceptance closure and 1.5 API foundation — November 10, 2026
+
+This follow-up implements the outstanding 1.4.2.2 behavior rather than waiving its acceptance criterion. Active users with changed authorization versions refresh local permission claims without another provider login. The refresh checks account/link activity and the original validated issuer/subject, reloads the permission union, and rechecks the version before renewing the existing server-side ticket. Changed identity bindings, inactive/revoked accounts/links, unstable concurrent refreshes and database failures fail closed. Unchanged requests do not repeat the permission join. Existing idle expiry, logout replay protection, ID-token retention for logout and strict resource-policy rechecks remain intact. Refresh creates no new login audit event.
+
+WBS 1.5 implements safe ProblemDetails for application errors (including FluentValidation 400, binding errors, auth failures, 404, 429 and 500), bounded correlation IDs, JSON console/rolling-file request logs, aggregate SQL/AD/Entra transport health, explicit mock/unconfigured modes, secret-source validation, production listener configuration, HTTPS redirection, HSTS on HTTPS errors and TLS 1.2/1.3. Only allowlisted safe operational events are emitted; query strings, arbitrary paths, bodies, cookies, tokens, SQL and exception text are excluded. Stable local actor ID accompanies the UPN snapshot. Local `/logs` is private ephemeral tmpfs; persistent production logging and monitoring require deployment configuration. See [API foundation setup and deployment checklist](api-foundation.md).
+
+The final complete `scripts/verify.ps1` passed: 8 unit tests, 92 credential-free integration/protocol tests, 12 frontend tests and all 6 Chromium/Firefox/WebKit smoke tests. The SQL-only test was skipped by this credential-free gate and passed separately through `scripts/test-dev-database.ps1`; `scripts/test-dev-sql-security.ps1` also passed. Backend line coverage: API 96%, Infrastructure 96.76%, Core 100%. Frontend statements/branches/functions/lines: 96.03%/92.95%/96.29%/95.58%. Release builds, analyzers, lint, formatting and all coverage thresholds passed.
+
+New HTTP tests verify no-login grant addition/removal, role/permission/grant edits, revocation, identity rebinding, a change during refresh, database failure, safe error bodies even with HTML Accept headers, HSTS/cache headers after exceptions, log context and file redaction. Real SQL verifies transactional invalidation, direct issuer/subject edits, a single additional permission join on refresh, no repeat join for unchanged sessions, and rollback. The Linux Kestrel handshake probe accepts TLS 1.2/1.3 and rejects TLS 1.0/1.1; the real LDAPS transport rejects its untrusted synthetic certificate. Directory success/outage/deadline/cancellation and aggregate 200/503 scenarios use synthetic transports/checks. Entra metadata requests are credential-free; these tests do not establish Graph authorization or live directory availability. Synthetic user-secret provider/CLI-list and environment-provider startup tests inject their values through early test-host settings; they do not validate a deployed secret store. Real user secrets were neither listed nor changed.
+
+The implementation was locally verified before publication on `feature/1.5-api-foundation`, based on `ed58d3631f608657c7b2934dc7d418546c81303c`. Earlier PR #23/CI evidence does not validate this follow-up. Publication and current-head hosted results are recorded separately; no merge or main/branch-protection claim is made. No persistent database, tenant, production identity or deployed host was changed; existing migrations ran only in the disposable SQL test database. Specification/schema/ERD and estimates remain unchanged; affected requirement references and WBS parent/effort rollups were checked. Other ignored requirements remain unpublished.
+
+Actual Windows/IIS host bindings, the deployed certificate, HTTP 80→HTTPS 443 and frontend TLS/no-mixed-content acceptance remain open under 1.5.5.1 and its parents. Live AD/Entra/Graph permission checks, Okta MFA/logout/session-return acceptance, native Safari, role/enrollment administration, worker implementation and multi-instance sessions remain separate release/workflow work. The local protocol probe establishes Kestrel behavior only. No compliance claim follows from these controls.
+
+The complete `scripts/verify-security.ps1` exited 0: no working-tree or Git-history secrets (18 locally available commits), no transitive NuGet advisories, zero npm vulnerabilities, and zero HIGH/CRITICAL findings in each backend/frontend/SQL/E2E image. This does not claim zero lower-severity image findings. New dependencies are Serilog.AspNetCore 10.0.0, Serilog.Sinks.File 7.0.0 and FluentValidation 12.2.0; no existing lock, image pin, scanner isolation, severity gate, coverage threshold or advisory suppression was weakened. Temporary image exports were removed. A separate redacted working-tree secret scan covers the final documentation handoff.
+
+All 22 affected Notion records were updated successfully with current local evidence, preserving previous notes, original acceptance criteria and estimates. WBS 1.4/1.4.2/1.4.2.2 are Completed. WBS 1.5/1.5.5/1.5.5.1 remain In progress for deployed host/certificate acceptance; the other foundation criteria are locally verified. Publication and hosted verification are tracked separately from these local checks.
+
+### Draft PR handoff
+
+Implementation commit `155c784343297b9c5e901b7e4a716cb844e14c48` is published in [draft PR #24](https://github.com/yojana-hawaii/ai-user-onboarding/pull/24), targeting `feature/1.4-rbac` at `ed58d3631f608657c7b2934dc7d418546c81303c`. Both complete local functional/security gates were repeated before publication with the same test/coverage counts, no secret/dependency findings, and zero HIGH/CRITICAL findings in all four images. The separate disposable SQL/security results above were not rerun in this documentation/publication follow-up; hosted security CI runs those checks independently.
+
+The diff contains this acceptance follow-up and API foundation only. PR #23 remains open and depends on #22 then #17; merge prerequisites in order and retarget this PR to develop when appropriate. This handoff does not authorize a merge. [Current-head hosted checks](https://github.com/yojana-hawaii/ai-user-onboarding/pull/24/checks) are separate evidence; documentation commits can advance the PR head. The review base was verified unprotected. Neither local success nor passing PR CI proves execution on main or enforced merge blocking. Related Notion notes record the exact verified PR head and hosted run when available.
+
+## PR #24 security and acceptance review — November 10, 2026
+
+Review found three reproducible defects. First, the new session refresh and strict current-authority queries relied on SQL issuer/subject equality, which ignores trailing spaces even under the configured BIN2 collation. They now compare the returned keys exactly in the application, preserving the original validated binding and rejecting padded keys before cached permissions or refreshed permissions can authorize a request. Sign-in already performed this exact comparison. Real SQL regressions cover padded issuer/subject claims and direct stored-key changes, without additional permission joins for unchanged requests. Second, non-400 BadHttpRequestException responses used a generic Bad Request title; they now use the reason phrase for the actual status, with the same safe detail and correlation ID. Third, the prerequisite permission-name trigger missed trailing-space key changes, leaving AuthorizationVersion unchanged. New forward migration InvalidatePermissionKeyChanges adds a DATALENGTH guard; it preserves the published predecessor and restores its trigger definition on downgrade. All three defects were reproduced by failing tests before correction.
+
+The separate disposable SQL migration/authorization/persistence/rollback test and scripts/test-dev-sql-security.ps1 passed after the identity fix; final verification includes the additional permission-key regression and migration. The new migration changes a trigger only, with no column, relationship or EF model change. No persistent database, real identity, directory, tenant or deployed host was changed. Requirement versions, schema/ERD, task estimates and deferred scope remain unchanged. Windows/IIS/certificate/80→443/frontend TLS, live providers, native Safari, worker and multi-instance acceptance remain open as documented above.
+
+GitHub inspection found PR #24 and prerequisites #17/#22/#23 closed and unmerged, superseding the earlier open-PR handoff. The user authorized reopening #24 as a draft and pushing review fixes; the requested review base remains feature/1.4-rbac, verified unprotected. Prerequisite integration, main execution and enforced merge blocking remain outstanding. Publication and fresh current-head hosted results are recorded in the PR and related Notion tasks separately from local verification.
+
+The final complete scripts/verify.ps1 passed after all three fixes: 8 unit tests, 93 credential-free integration/protocol tests, 12 frontend tests and all 6 Chromium/Firefox/WebKit smoke tests, with builds, analyzers, formatting, lint and coverage thresholds satisfied. Backend line coverage: API 96.17%, Infrastructure 96.76%, Core 100%; frontend statements/branches/functions/lines: 96.03%/92.95%/96.29%/95.58%. The SQL-only test remains skipped by that credential-free gate and passed separately against a disposable database after the new migration, including upgrade/down/reapply, exact identity matching, permission-key invalidation and rollback. scripts/test-dev-sql-security.ps1 passed again. Migration classes retain the existing explicit coverage exclusion and are verified by that real-SQL suite; no coverage or security gate was weakened.
+
+The final complete scripts/verify-security.ps1 also passed: source/history secret scans found no leaks (20 locally available commits before the review commit), transitive NuGet auditing found no advisories, npm reported zero vulnerabilities, and backend/frontend/SQL/E2E images each reported zero HIGH/CRITICAL findings. This does not claim zero lower-severity image findings. Image pins, dependency locks, severity thresholds and scanner isolation remain unchanged. A final redacted source scan covers this verification record; a post-commit history scan covers the published review commit. These local results do not establish current-head hosted success, main execution or enforced merge blocking; use the exact-head evidence recorded in the PR and Notion tasks.
+
+## Dependabot integration — November 14, 2026
+
+The integration branch `feature/dependabot-to-develop` contains merge commits for all eight existing remote Dependabot heads: SDK digest, Node 26, Trivy 0.76.2, Angular CLI/common/platform-browser, jsdom 31.0.0 and Vitest 5.1.0. The closed source PRs targeted main; this integration targets develop as requested. The separate UI-shell PR #25 is excluded, and no branch was deleted.
+
+Angular runtime/compiler packages are aligned at 22.2.5, CLI/build at 22.2.6, and Vitest/coverage-v8 at 5.1.0. The frontend image runs Node 26.13.0 while the pinned Playwright image retains Node 24; the application engine range permits both supported lines. [Angular's compatibility table](https://angular.dev/reference/versions) supports these Node lines, and the Angular build package declares Vitest 5 support. The regenerated lockfile passes npm auditing with zero vulnerabilities; no force or legacy-peer-deps flag was used. Existing scoped minimatch and bundled Undici fixes remain intact.
+
+The proposed Dependabot SDK digest `212fe4c` still contains ASP.NET Core 10.0.14. Its merge was resolved to pinned digest `fe0fd4e93bd2fbb47c883b7a6369e5c8d3db8bf01cdc5981f6ee35fbdf3ff4fb`, SDK 10.0.404 / runtime 10.0.15, preserving the remediation for CVE-2026-114146, CVE-2026-114147 and CVE-2026-114149. Existing APT fixes, non-root/read-only/capability restrictions, scanner isolation, 20-minute scan timeout, HIGH/CRITICAL failure gates and coverage thresholds remain unchanged. The scanner is now pinned to Trivy 0.76.2. No application behavior, schema, tenant, production or deployment change is included.
+
+Both complete local gates exited 0. `scripts/verify.ps1` passed 8 unit, 93 credential-free integration/protocol, 12 frontend and 6 Chromium/Firefox/WebKit tests, plus builds, analyzers, lint and formatting. Backend line coverage: API 96.17%, Infrastructure 96.76%, Core 100%. Frontend statements/branches/functions/lines: 96.03%/92.95%/96.29%/95.58%. The SQL-only test was skipped in this credential-free run; real SQL/runtime-permission probes were not rerun locally. Browser mocks and WebKit do not establish live Okta/MFA or native Safari acceptance.
+
+The complete `scripts/verify-security.ps1` passed with Trivy 0.76.2: working-tree/history scans found no leaks (23 commits scanned), transitive NuGet auditing found no advisories, npm reported zero vulnerabilities, and backend/frontend/SQL/E2E images each reported zero HIGH/CRITICAL findings. Exported public-image archives were cleaned up. Lower-severity image findings are not claimed absent. `git diff --check` passed, and all eight original remote Dependabot heads are ancestors of the integration branch. PR-head hosted results, final develop merge evidence and enforced protection are separate from these local checks; develop remains unprotected and no main/production action is included.
+
+## WBS 1.7 — Core background worker and retries — November 14, 2026
+
+Implemented on `feature/1.7-background-worker`, based on develop commit `3b10302`. The separate opt-in worker process uses the existing patched .NET backend image without HTTP/OIDC/session services or tenant secrets. No production handlers or privileged directory/helpdesk actions are registered. The helpdesk provider remains deferred. See [background-worker.md](background-worker.md) for configuration and the handler execution contract.
+
+SQL claims use UPDATE OUTPUT with row/update locks and commit an attempt-history row in the same transaction. New jobs default to four total attempts with 1/4/16-minute retry deadlines. A handler must explicitly identify a known transient result before automatic retry. Unknown/missing/duplicate handlers fail visibly; unexpected exceptions, cancellation, timeout and abandoned claims require reconciliation. Attempt identity and StartedAt fence late completion. Parent request/approval/EHR state is unchanged by infrastructure outcomes. The new WorkerAttempts migration adds the attempt table, updates the new-job default and denies runtime deletion of attempt evidence. Published predecessor migrations are unchanged. Existing persisted retry budgets are preserved.
+
+The disposable real-SQL test passed: upgrade/down/reapply and schema/runtime permission checks plus eight concurrent claimants, exactly one winner, future-job exclusion, retained per-attempt outcomes and SQL-clock retry deadlines, four-attempt exhaustion, unchanged parent request data, stale-claim recovery and rejection of late/repeated completion. The initial SQL invocation overlapped Coverlet instrumentation of the shared build-artifact volume and failed with InvalidProgramException before reaching the worker probe; the serial rerun passed without a SQL implementation change. Run SQL checks separately from coverage runs that rewrite the same `/artifacts/check` assemblies. `scripts/test-dev-sql-security.ps1` also passed SQL encryption/feature/container restrictions.
+
+The complete `scripts/verify-security.ps1` exited 0: source/history scans found no secrets (24 locally available commits), fresh transitive NuGet auditing found no advisories, npm reported zero vulnerabilities, and backend/frontend/SQL/E2E images each reported zero HIGH/CRITICAL findings. Exported image archives were cleaned up. This does not claim zero lower-severity image findings. Existing security gates, pinned images, lockfiles, non-root/read-only restrictions and scanner isolation remain intact; the worker reuses the scanned backend image.
+
+IT-attention events and persisted terminal outcomes are available, but email/Teams recipient configuration, delivery and delivery evidence remain WBS 1.8 work. Keep the IT-delivery acceptance in WBS 1.7.2/1.7.2.1 open. Production monitoring must route worker events and inspect the durable failure backlog. Workflow handlers must implement current revision/period/schedule/authority validation and external-result reconciliation before any real side effect. Infrastructure tests do not establish external exactly-once execution, live MFA, native Safari or production deployment acceptance.
+
+No persistent database, tenant or deployed worker was changed. Only disposable databases were migrated during tests. Requirements/Data Model v4.7/ERD v4.7 and SRS v1.9 retry clarification were reconciled locally and remain Git-ignored; the PRD source references were updated without expanding scope. Schema/ERD consistency checks cover 32 current tables, 307 schema columns, seven attempt columns and the BackgroundJobs foreign key. WBS 1.7 dependency/parent links resolve; its provisional leaf effort remains 2.75 dev days and Sprint 1 remains 37.75 dev days. These are effort estimates, not calendar duration. No PR, hosted checks, merge, main execution or branch-protection change is claimed by these local results.
+
+Final `scripts/verify.ps1` exited 0: 8 backend unit tests, 111 credential-free integration/protocol tests, 12 frontend tests and all 6 Chromium/Firefox/WebKit tests passed, with builds, analyzers, lint, formatting and coverage thresholds intact. The credential-free run skipped the SQL-only test; its separate disposable result is recorded above. Backend line coverage: API 95.09%, Infrastructure 88.21%, Core 100%. Frontend statements/branches/functions/lines: 96.03%/92.95%/96.29%/95.58%. Browser startup briefly logged proxy connection refusals while the isolated API became ready; the readiness wait and all six tests passed. Native Safari remains unverified. Worker Compose validation, WBS/ERD/schema consistency checks and `git diff --check` passed. Per-step integration acceptance in WBS 1.7.2.2 remains open until actual provisioning handlers wire the core retry result to step execution; registered synthetic handlers establish the infrastructure boundary only.
+
+Publication preparation: the complete security gate was repeated on November 14, 2026 and exited 0 with the same clean source/history, NuGet/npm and four-image results (24 scanned history commits). The earlier complete functional gate and separate SQL results above apply to the unchanged implementation; only handoff documentation changed afterward. README and AGENTS.md were reconciled, and develop was fetched and verified at 3b103026b10281da3832d8a855cf2548f47ba3c3 with no open PRs at preparation time. Develop remains unprotected. Publication and actual-head hosted evidence belong to the new PR and related Notion records; no merge or deployment is authorized by this preparation.
+
+### Requested security rerun and tracker handoff — November 14, 2026
+
+At the user's request, the complete `scripts/verify-security.ps1` gate was repeated after the WBS 1.8 implementation and exited 0: no source/history leaks (25 locally available commits), no transitive NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in backend/frontend/SQL/E2E images. No gate, image pin, lockfile or container/scanner isolation was weakened. This follow-up changes documentation/tracking only; functional/browser/disposable-SQL results above are earlier applicable evidence, not a new execution. README and AGENTS now record the current notification behavior, migration prerequisites, verification scope and live-provider/workflow limitations. Notion is reconciled to the same criteria; a local commit is authorized; pushing, PR publication and hosted CI remain separate.
+
+
+### Committed-head pre-PR preparation — November 14, 2026
+
+Pre-PR preparation on November 14 rechecked local implementation commit a27702b7a7b993f9d701963e6ac9c62eaec01adb: the complete security gate exited 0, with no source/history leaks (26 commits), no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images. Docker startup failures from the commit handoff are resolved. Earlier functional/browser/disposable-SQL results remain applicable and were not rerun. No open PRs were found through the GitHub API; remote develop remains 3b103026b10281da3832d8a855cf2548f47ba3c3 and does not contain worker prerequisite 224282aa4c56bf5812fe066408614703e550f695. A future review must account for that prerequisite. No push, PR, merge or live action occurred. This documentation follow-up remains uncommitted.
+
+WBS parent links and leaf totals were rechecked: 1.8.1 = 2, 1.8 = 2.5 and Sprint 1 = 38.5 provisional effort days. The application channel constraint matches the schema fixture. Only README, AGENTS and this security record changed during preparation; ignored requirements remain unpublished. No persistent migration, deployment or live notification was executed.
+
+
+Publication preparation: the user authorized committing this documentation follow-up, pushing feature/1.8-notifications and opening a draft PR. The review base is feature/1.7-background-worker at 224282aa4c56bf5812fe066408614703e550f695 because prerequisite PR #27 is closed and unmerged. Integrate that prerequisite into develop before retargeting; no merge or deployment is authorized. Final published head, PR and current-head CI evidence belong in Notion after publication. The preceding complete security gate and earlier functional/SQL results apply; this follow-up changes documentation only.
+
+
+### Hosted SQL probe timing correction — November 14, 2026
+
+PR #28 hosted review found a test timing assumption: its Retry-After SQL probe dereferenced a missing immediate claim because enqueue and claim used different clocks. The probe now explicitly schedules the fixture in the future and verifies no claim, then makes it due relative to SYSUTCDATETIME and asserts a non-null claim before checking persisted Retry-After. Production queue, retry, authorization and transport behavior are unchanged. The separate disposable SQL test and SQL security checks passed; backend build/analyzer/format/coverage gates passed with 8 unit and 145 credential-free integration tests (SQL-only test skipped in coverage). Backend lines remain API 95.11%, Infrastructure 89.6%, Core 100%. Frontend/browser results are earlier applicable evidence, not rerun for this test-only fix. Original hosted scans reported zero HIGH/CRITICAL findings in all four images; the hosted job failed afterward in the SQL probe. See the new hosted run for the corrected head; the old failed run remains historical. No persistent migration, tenant change, live notification or merge occurred.
+
+
+The complete local security rerun for this correction exited 0: no source/history secrets (27 scanned commits), no transitive NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images. No gate, package lock, image pin or scanner restriction changed. Reopen worker draft PR #27 and notification draft PR #28 for review; keep the notification review base on feature/1.7-background-worker until the prerequisite is integrated into develop. No merge is authorized.

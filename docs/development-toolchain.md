@@ -6,16 +6,16 @@ Development runs in Docker Desktop Linux containers on this Windows workstation.
 
 | Area | Selection | Observed validation |
 | --- | --- | --- |
-| Backend | .NET / ASP.NET Core 10 LTS, `mcr.microsoft.com/dotnet/sdk:10.0` | SDK 10.0.403; Release solution build passes with zero warnings/errors |
-| SDK selection | `global.json`: minimum 10.0.100, latest installed stable 10.0 feature band | Resolves to 10.0.403 inside container |
-| Frontend | Angular 22, Node 24 LTS image `node:24-alpine` | Angular 22.2.4; CLI/build 22.2.5; production build passes |
-| JavaScript runtime | Node 24.x and npm 11.x inside Docker | Node 24.22.2, npm 11.21.1 (bundled Undici patched to 6.29.1) |
+| Backend | .NET / ASP.NET Core 10 LTS, `mcr.microsoft.com/dotnet/sdk:10.0` | November 14 dependency integration: SDK 10.0.404 / ASP.NET Core 10.0.15; Release solution build passes with zero warnings/errors |
+| SDK selection | `global.json`: minimum 10.0.100, latest installed stable 10.0 feature band | Resolves to 10.0.404 inside container |
+| Frontend | Angular 22, Node 26 frontend image `node:26-alpine` | Angular/compiler 22.2.5; CLI/build 22.2.6; see November 14 integration evidence |
+| JavaScript runtime | Node 26 frontend / Node 24 browser tests, npm 11.x inside Docker | Frontend Node 26.13.0, npm 11.21.1 (bundled Undici patched to 6.29.1) |
 | TypeScript | 6.0.x | 6.0.3 resolves and compiles |
 | Backend tests | xUnit 2.9.3, VS adapter 3.1.5, Microsoft.NET.Test.Sdk 18.0.0 | API integration test passes; unit project is intentionally empty until domain implementation |
 | API integration host | Microsoft.AspNetCore.Mvc.Testing 10.0.0 | Liveness test passes; no SQL or external-service validation |
-| Frontend tests | Angular unit-test builder, Vitest, jsdom | Vitest 4.1.12, jsdom 27.4.0; one component test passes |
+| Frontend tests | Angular unit-test builder, Vitest, jsdom | Vitest/coverage-v8 5.1.0, jsdom 31.0.0; see November 14 integration evidence |
 | Formatting | .editorconfig, dotnet format, Prettier | Backend and frontend checks pass; Prettier 3.9.10 |
-| Persistence | SQL Server 2022; planned EF Core 10 SQL Server provider with matching dotnet-ef | Not installed or implemented; exact servicing versions and migration commands need confirmation during database work |
+| Persistence | SQL Server 2022; EF Core SQL Server provider and dotnet-ef 10.0.14 | Complete 31-table first-release schema, catalog seeds, append-only grants and SQL readiness implemented; see [database foundation](database-foundation.md) for current scope and validation |
 | CI | GitHub Actions on Ubuntu, invoking the same Docker verification script | Workflow prepared; local script passes; hosted execution and branch protections pending |
 
 ## Verification evidence
@@ -32,7 +32,7 @@ Development runs in Docker Desktop Linux containers on this Windows workstation.
 
 ## Sprint coverage and remaining work
 
-Initial artifacts cover parts of WBS 1.1.1 (Git and branch convention), 1.1.2 (solution), 1.1.3 (Angular and API proxy), 1.1.4 (CI definition), 1.1.5 (test structure/conventions), and 1.1.6.2 (runtime/testing selection). These work packages are not all complete: hosted checks and protected branches, migration tooling, OpenAPI UI, full integration/E2E setup, and the coverage gate remain outstanding. The frontend currently uses a single relative `/api` base in both environments, documented in README; separate environment files are not present. Prettier is a formatting check, not a semantic lint configuration.
+Initial artifacts cover parts of WBS 1.1.1 (Git and branch convention), 1.1.2 (solution), 1.1.3 (Angular and API proxy), 1.1.4 (CI definition), 1.1.5 (test structure/conventions), and 1.1.6.2 (runtime/testing selection). These work packages are not all complete: hosted check execution still needs confirmation. Migration tooling, OpenAPI UI, semantic linting, browser E2E setup and an 80% coverage gate are now configured; see the README quality-check section for commands and coverage scope. The frontend currently uses a single relative `/api` base in both environments, documented in README; separate environment files are not present. Prettier checks formatting; Angular ESLint checks TypeScript and templates, and .NET SDK analyzers run with build warnings treated as errors.
 
 This is a manually prepared, build-verified scaffold. The branding revision updated requirement metadata and naming; business behavior and provisional effort estimates were not changed. No database migration, directory action, ticket creation, authentication setup or production deployment was executed. No production credentials are configured.
 
@@ -53,3 +53,11 @@ There is no owned public domain. Public ACME issuance and renewal automation are
 Verified after the rename and HTTPS changes: complete Docker verification script passes (backend/frontend builds, one API integration test, one component test and both format checks). Windows HTTPS requests to the frontend, proxied liveness and direct API liveness each returned 200 without bypassing certificate validation. An API request with an incorrect TLS hostname was rejected. Private-key files are ignored by Git; the source mount masks .certs, while only the running services receive its read-only certificate mount.
 
 The security hardening revision and final validation are recorded in development-security.md. Container images now use pinned Dockerfiles, non-root users and read-only source/root filesystems. Check script changes and certificate lifecycle commands are documented in README.md.
+
+Verified locally on November 8, 2026: Release build and .NET formatting passed; 8 unit and 5 API integration tests passed, with the SQL-only migration test skipped in this credential-free run. Merged backend line coverage was 94.91%. Angular lint, production build, formatting and 3 component/routing tests passed with 100% coverage in all four frontend metrics. All 6 browser smoke tests passed across Chromium, Firefox and WebKit. The live development Swagger UI and OpenAPI document returned HTTPS 200 with certificate verification enabled. The hosted build/test/format job passed on the initial implementation commit in PR #17. Results for the final security-remediation commit are tracked in that PR's checks; native Safari validation on macOS remains unverified.
+
+After security validation, the E2E image moved to the supported Ubuntu 26.04 Playwright image with Node 24 retained and the APT security fix applied. The final complete security command passed with zero HIGH/CRITICAL findings in all four development images, and all six browser smoke tests passed again. See [the security verification record](development-security.md#cross-browser-test-image--november-8-2026) and [PR #17](https://github.com/yojana-hawaii/ai-user-onboarding/pull/17).
+
+## Dependency integration — November 14, 2026
+
+The current SDK, Node, Angular and test-tool versions above supersede their earlier baseline values. See the [integration verification record](development-security.md#dependabot-integration--november-14-2026) for exact local/hosted scope. Frontend build and unit tests use Node 26; browser smoke tests retain the pinned Node 24/Playwright image.
