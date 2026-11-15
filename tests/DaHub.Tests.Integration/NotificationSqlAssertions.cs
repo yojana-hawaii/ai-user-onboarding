@@ -39,7 +39,12 @@ internal static class NotificationSqlAssertions
         var queue = new NotificationService(database, TimeProvider.System);
         var retryId = await queue.EnqueueAsync(new("SMS", "Synthetic", "SyntheticRetryAfter", "S", "B"), CancellationToken.None);
         var store = new SqlJobStore(database);
-        var claim = (await store.ClaimAsync(CancellationToken.None))!;
+        // Claims use SQL Server's clock; do not assume the application timestamp is already due.
+        await database.Database.ExecuteSqlInterpolatedAsync($"UPDATE dahub_ita.BackgroundJobs SET ScheduledAt = DATEADD(minute, 1, SYSUTCDATETIME()) WHERE Id = {retryId}");
+        Assert.Null(await store.ClaimAsync(CancellationToken.None));
+        await database.Database.ExecuteSqlInterpolatedAsync($"UPDATE dahub_ita.BackgroundJobs SET ScheduledAt = DATEADD(minute, -1, SYSUTCDATETIME()) WHERE Id = {retryId}");
+        var claim = await store.ClaimAsync(CancellationToken.None);
+        Assert.NotNull(claim);
         Assert.Equal(retryId, claim.Id);
         var retryAt = DateTime.UtcNow.AddHours(1);
         await store.FinishAsync(claim, new(JobOutcome.Retry, "TransientFailure", retryAt), CancellationToken.None);

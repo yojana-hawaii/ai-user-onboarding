@@ -289,3 +289,11 @@ WBS parent links and leaf totals were rechecked: 1.8.1 = 2, 1.8 = 2.5 and Sprint
 
 
 Publication preparation: the user authorized committing this documentation follow-up, pushing feature/1.8-notifications and opening a draft PR. The review base is feature/1.7-background-worker at 224282aa4c56bf5812fe066408614703e550f695 because prerequisite PR #27 is closed and unmerged. Integrate that prerequisite into develop before retargeting; no merge or deployment is authorized. Final published head, PR and current-head CI evidence belong in Notion after publication. The preceding complete security gate and earlier functional/SQL results apply; this follow-up changes documentation only.
+
+
+### Hosted SQL probe timing correction — November 14, 2026
+
+PR #28 hosted review found a test timing assumption: its Retry-After SQL probe dereferenced a missing immediate claim because enqueue and claim used different clocks. The probe now explicitly schedules the fixture in the future and verifies no claim, then makes it due relative to SYSUTCDATETIME and asserts a non-null claim before checking persisted Retry-After. Production queue, retry, authorization and transport behavior are unchanged. The separate disposable SQL test and SQL security checks passed; backend build/analyzer/format/coverage gates passed with 8 unit and 145 credential-free integration tests (SQL-only test skipped in coverage). Backend lines remain API 95.11%, Infrastructure 89.6%, Core 100%. Frontend/browser results are earlier applicable evidence, not rerun for this test-only fix. Original hosted scans reported zero HIGH/CRITICAL findings in all four images; the hosted job failed afterward in the SQL probe. See the new hosted run for the corrected head; the old failed run remains historical. No persistent migration, tenant change, live notification or merge occurred.
+
+
+The complete local security rerun for this correction exited 0: no source/history secrets (27 scanned commits), no transitive NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images. No gate, package lock, image pin or scanner restriction changed. Reopen worker draft PR #27 and notification draft PR #28 for review; keep the notification review base on feature/1.7-background-worker until the prerequisite is integrated into develop. No merge is authorized.

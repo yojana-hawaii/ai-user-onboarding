@@ -206,6 +206,10 @@ The requested November 14 security rerun passed the complete `scripts/verify-sec
 
 Pre-PR preparation on November 14 rechecked local implementation commit a27702b7a7b993f9d701963e6ac9c62eaec01adb: the complete security gate exited 0, with no source/history leaks (26 commits), no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images. Docker startup failures from the commit handoff are resolved. Earlier functional/browser/disposable-SQL results remain applicable and were not rerun. No open PRs were found through the GitHub API; remote develop remains 3b103026b10281da3832d8a855cf2548f47ba3c3 and does not contain worker prerequisite 224282aa4c56bf5812fe066408614703e550f695. A future review must account for that prerequisite. No push, PR, merge or live action occurred. This documentation follow-up remains uncommitted.
 
+PR #28 follow-up corrects a SQL-test timing assumption by using SQL Server time to control fixture eligibility and explicitly checking future/due claims. The backend gate (8 unit, 145 credential-free integration tests), separate disposable SQL test and SQL security checks passed. Production notification behavior is unchanged; original hosted scans passed, while the job failed in the SQL probe. Current corrected-head hosted evidence is tracked in Notion and the PR.
+
+The correction also passed a fresh complete security gate: no source/history leaks (27 commits), no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images. Hosted acceptance belongs to the corrected PR head.
+
 The [Notion WBS 1.8 record](https://app.notion.com/p/412ee4cf5eb481cfa4dfe9896ed8864b) and related tasks now contain the same statuses, evidence and remaining criteria, including the added Slack/SMS leaves and provisional parent effort. [AGENTS.md](AGENTS.md#8-before-each-pull-request) requires security checks and README/AGENTS/Notion reconciliation before commits and PR publication.
 
 ### Core background worker — WBS 1.7
