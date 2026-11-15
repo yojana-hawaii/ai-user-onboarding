@@ -27,7 +27,7 @@ Development runs in Docker Desktop Linux containers on this Windows workstation.
 - HTTPS checks for direct/proxied liveness and the Angular root are recorded after local certificate setup below.
 - The .NET polling watcher failed on Windows bind mounts during rebuilds. The API uses ordinary dotnet run; explicitly restart the api service after backend changes. Frontend checks use separate dependency/cache volumes from the live web service. Static assets are disabled for this API-only project.
 - `package-lock.json` records resolved frontend packages. Image tags follow servicing releases; record new runtime versions when pulling updated images.
-- GitHub origin is `https://github.com/yojana-hawaii/ai-user-onboarding.git`. Local main/develop preserve existing commit `2235304`; existing license and ignore rules are retained. Develop has no upstream until its first publication. No commit or push was made.
+- GitHub origin is `[private repository reference]`. Local main/develop preserve existing commit `2235304`; existing license and ignore rules are retained. Develop has no upstream until its first publication. No commit or push was made.
 - Git trusts only this workspace through a specific safe.directory entry, allowing the Windows user to use repository metadata initialized by the sandbox.
 
 ## Sprint coverage and remaining work
@@ -56,7 +56,7 @@ The security hardening revision and final validation are recorded in development
 
 Verified locally on November 8, 2026: Release build and .NET formatting passed; 8 unit and 5 API integration tests passed, with the SQL-only migration test skipped in this credential-free run. Merged backend line coverage was 94.91%. Angular lint, production build, formatting and 3 component/routing tests passed with 100% coverage in all four frontend metrics. All 6 browser smoke tests passed across Chromium, Firefox and WebKit. The live development Swagger UI and OpenAPI document returned HTTPS 200 with certificate verification enabled. The hosted build/test/format job passed on the initial implementation commit in PR #17. Results for the final security-remediation commit are tracked in that PR's checks; native Safari validation on macOS remains unverified.
 
-After security validation, the E2E image moved to the supported Ubuntu 26.04 Playwright image with Node 24 retained and the APT security fix applied. The final complete security command passed with zero HIGH/CRITICAL findings in all four development images, and all six browser smoke tests passed again. See [the security verification record](development-security.md#cross-browser-test-image--november-8-2026) and [PR #17](https://github.com/yojana-hawaii/ai-user-onboarding/pull/17).
+After security validation, the E2E image moved to the supported Ubuntu 26.04 Playwright image with Node 24 retained and the APT security fix applied. The final complete security command passed with zero HIGH/CRITICAL findings in all four development images, and all six browser smoke tests passed again. See [the security verification record](development-security.md#cross-browser-test-image--november-8-2026) and PR #17 (private project evidence).
 
 ## Dependency integration — November 14, 2026
 

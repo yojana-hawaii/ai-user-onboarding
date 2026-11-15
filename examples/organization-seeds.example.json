@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "locations": [
+    { "siteCode": "EXAMPLE", "name": "Example site" }
+  ],
+  "departments": [
+    { "name": "Example department", "ouPath": "OU=Example,DC=example,DC=test" }
+  ],
+  "jobTitles": [
+    { "title": "Example job", "ehrAccessDefault": false }
+  ],
+  "specialties": [
+    { "name": "Example specialty", "description": "Synthetic example only" }
+  ],
+  "templates": [
+    {
+      "name": "Example template",
+      "description": "Synthetic example; replace with approved organization values",
+      "department": "Example department",
+      "location": "EXAMPLE",
+      "jobTitle": "Example job",
+      "specialty": "Example specialty",
+      "m365LicenseSku": "example-sku",
+      "ehrAccessRequired": false,
+      "groups": [
+        {
+          "groupType": "AD_Security",
+          "groupName": "Example group",
+          "groupIdentifier": "CN=Example,OU=Groups,DC=example,DC=test",
+          "isRequired": true
+        }
+      ]
+    }
+  ]
+}

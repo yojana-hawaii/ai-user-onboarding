@@ -16,6 +16,12 @@ export const routes: Routes = [
     loadComponent: () => import('./access-page').then((module) => module.AccessPage),
     data: { title: 'Access denied', message: 'You do not have permission to access this page.' },
   },
+  {
+    path: 'admin/organization-seeds',
+    canActivate: [permissionGuard],
+    loadComponent: () => import('./organization-seeds').then((module) => module.OrganizationSeeds),
+    data: { permissions: ['templates.manage', 'users.manage'] },
+  },
   ...[
     { path: 'requests', title: 'Requests', permissions: ['requests.view.own'] },
     { path: 'provisioning', title: 'Provisioning', permissions: ['provisioning.execute'] },
