@@ -74,6 +74,7 @@ public sealed class SqlServerMigrationTests
             Assert.Single(await context.Locations.ToArrayAsync());
             // The public migrations must not install any organization's operational catalogs.
             await ExecuteAsync(connection, "INSERT dahub_ita.Locations (Name,SiteCode) VALUES (N'Synthetic main',N'MAIN'),(N'Synthetic second',N'SECOND')");
+            await EnrollmentSqlAssertions.BootstrapAsync(admin.ConnectionString);
             await FirstReleaseSchemaAssertions.VerifyAsync(connection);
             await VerifyAuthorizationInvalidationAsync(connection);
             await WorkerSqlAssertions.VerifyAsync(admin.ConnectionString);
@@ -130,6 +131,7 @@ public sealed class SqlServerMigrationTests
             }
 
             await SeedSqlAssertions.VerifyAsync(runtime.ConnectionString);
+            await EnrollmentSqlAssertions.VerifyAsync(runtime.ConnectionString);
 
             // Partial rollback must preserve operator data without installing any site seeds on upgrade.
             await context.GetService<IMigrator>().MigrateAsync(baseline);

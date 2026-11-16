@@ -23,7 +23,10 @@ public sealed class LocalIdentity(DaHubDbContext database, TimeProvider clock, P
                             select new { Identity = identity, User = user }).SingleOrDefaultAsync(cancellationToken);
         // SQL uses a binary collation for issuer/subject; also enforce exact equality in the application.
         if (record is null || record.Identity.Issuer != issuer || record.Identity.Subject != subject)
+        {
+            await AuditFailureAsync("IdentityNotEnrolled", cancellationToken);
             return null;
+        }
 
         record.User.LastLoginAt = clock.GetUtcNow().UtcDateTime;
         database.AuditLog.Add(new AuditLogEntry
@@ -50,6 +53,21 @@ public sealed class LocalIdentity(DaHubDbContext database, TimeProvider clock, P
         claims.AddRange((await permissions.ResolveAsync(record.User.Id, cancellationToken))
             .Select(permission => new Claim(PermissionResolver.PermissionClaim, permission)));
         return new ClaimsPrincipal(new ClaimsIdentity(claims, AuthRegistration.CookieScheme));
+    }
+
+    public async Task AuditFailureAsync(string reason, CancellationToken cancellationToken)
+    {
+        // Never attribute unvalidated provider data to a local actor or retain protocol diagnostics.
+        database.AuditLog.Add(new AuditLogEntry
+        {
+            ActorUPN = "anonymous",
+            ActionType = "LoginFailed",
+            AffectedSystem = "App",
+            Result = "Failure",
+            Detail = reason == "IdentityNotEnrolled" ? "IdentityNotEnrolled" : "ProtocolRejected",
+            TimestampUTC = clock.GetUtcNow().UtcDateTime
+        });
+        await database.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<ClaimsPrincipal?> RefreshAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
