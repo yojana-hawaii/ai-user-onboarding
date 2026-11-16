@@ -167,6 +167,8 @@ public static class AuthRegistration
                 var subject = context.Principal?.FindFirst("sub")?.Value;
                 if (string.IsNullOrWhiteSpace(subject))
                 {
+                    await context.HttpContext.RequestServices.GetRequiredService<LocalIdentity>()
+                        .AuditFailureAsync("ProtocolRejected", context.HttpContext.RequestAborted);
                     context.Response.Redirect("/?authError=sign-in-failed");
                     context.HandleResponse();
                     return;
@@ -182,11 +184,12 @@ public static class AuthRegistration
                 context.Principal = principal;
                 context.Properties!.IsPersistent = false;
             };
-            options.Events.OnRemoteFailure = context =>
+            options.Events.OnRemoteFailure = async context =>
             {
+                await context.HttpContext.RequestServices.GetRequiredService<LocalIdentity>()
+                    .AuditFailureAsync("ProtocolRejected", context.HttpContext.RequestAborted);
                 context.HandleResponse();
                 context.Response.Redirect("/?authError=sign-in-failed");
-                return Task.CompletedTask;
             };
         });
     }

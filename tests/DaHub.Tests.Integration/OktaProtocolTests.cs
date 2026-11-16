@@ -36,6 +36,7 @@ public sealed class OktaProtocolTests
         public string Nonce { get; set; } = "";
         public string Failure { get; set; } = "";
         public string Subject { get; set; } = "enrolled-subject";
+        public string Email { get; set; } = "same-email@example.invalid";
         public bool PkceReceived { get; private set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -49,7 +50,7 @@ public sealed class OktaProtocolTests
                 Failure == "audience" ? "wrong-client" : "synthetic-client",
                 [new Claim("sub", Subject), new Claim("iat", EpochTime.GetIntDate(now).ToString(System.Globalization.CultureInfo.InvariantCulture), ClaimValueTypes.Integer64),
                     new Claim("nonce", Failure == "nonce" ? "wrong-nonce" : Nonce),
-                    new Claim("email", "same-email@example.invalid"), new Claim("groups", "Admin")],
+                    new Claim("email", Email), new Claim("groups", "Admin")],
                 now.AddHours(-2), Failure == "expiry" ? now.AddHours(-1) : now.AddMinutes(5),
                 new SigningCredentials(key, SecurityAlgorithms.RsaSha256));
             return new HttpResponseMessage(HttpStatusCode.OK)
@@ -87,7 +88,8 @@ public sealed class OktaProtocolTests
                     services.Replace(ServiceDescriptor.Singleton<TimeProvider>(Clock));
                     services.RemoveAll<DbContextOptions<DaHubDbContext>>();
                     services.RemoveAll<Microsoft.EntityFrameworkCore.Infrastructure.IDbContextOptionsConfiguration<DaHubDbContext>>();
-                    services.AddDbContext<DaHubDbContext>(options => options.UseInMemoryDatabase(_database));
+                    services.AddDbContext<DaHubDbContext>(options => options.UseInMemoryDatabase(_database)
+                        .ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning)));
                     services.PostConfigure<OpenIdConnectOptions>(AuthRegistration.OktaScheme, options =>
                     {
                         var configuration = new OpenIdConnectConfiguration
@@ -221,7 +223,13 @@ public sealed class OktaProtocolTests
         Assert.Equal("/?authError=sign-in-failed", callback.Headers.Location?.ToString());
         Assert.Equal(HttpStatusCode.Unauthorized, (await fixture.Client.GetAsync("/api/auth/session")).StatusCode);
         using var scope = fixture.Factory.Services.CreateScope();
-        Assert.Empty(await scope.ServiceProvider.GetRequiredService<DaHubDbContext>().AuditLog.ToListAsync());
+        var audit = await scope.ServiceProvider.GetRequiredService<DaHubDbContext>().AuditLog.SingleAsync();
+        Assert.Null(audit.ActorUserId);
+        Assert.Equal("anonymous", audit.ActorUPN);
+        Assert.Equal("LoginFailed", audit.ActionType);
+        Assert.Equal("Failure", audit.Result);
+        Assert.Equal("ProtocolRejected", audit.Detail);
+        Assert.Null(audit.NewValueJson);
     }
 
     [Theory]
@@ -235,6 +243,51 @@ public sealed class OktaProtocolTests
         using var callback = await fixture.LoginAsync();
         Assert.Equal("/?authError=sign-in-failed", callback.Headers.Location?.ToString());
         Assert.Equal(HttpStatusCode.Unauthorized, (await fixture.Client.GetAsync("/api/auth/session")).StatusCode);
+        using var scope = fixture.Factory.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<DaHubDbContext>();
+        var audit = await database.AuditLog.SingleAsync();
+        Assert.Null(audit.ActorUserId);
+        Assert.Equal("IdentityNotEnrolled", audit.Detail);
+        Assert.Null((await database.AppUsers.SingleAsync()).LastLoginAt);
+    }
+
+    [Fact]
+    public async Task RepeatLoginAndExpiredSessionReturnPreserveLocalIdentity()
+    {
+        using var fixture = new Fixture();
+        using var scope = fixture.Factory.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<DaHubDbContext>();
+        var employee = new Employee
+        {
+            LegalFirstName = "Synthetic",
+            LegalLastName = "Worker",
+            Username = "synthetic",
+            Email = "worker@example.invalid",
+            EmploymentType = "Employee"
+        };
+        database.Employees.Add(employee);
+        await database.SaveChangesAsync();
+        var user = await database.AppUsers.SingleAsync();
+        user.EmployeeId = employee.Id;
+        user.UPN = "local-contact@example.invalid";
+        await database.SaveChangesAsync();
+        using var first = await fixture.LoginAsync();
+        Assert.Equal("https://localhost/requested-route", first.Headers.Location?.ToString());
+        fixture.Clock.Now += TimeSpan.FromMinutes(30);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await fixture.Client.GetAsync("/api/auth/session")).StatusCode);
+        fixture.Provider.Email = "changed-provider-contact@example.invalid";
+        using var second = await fixture.LoginAsync();
+        Assert.Equal("https://localhost/requested-route", second.Headers.Location?.ToString());
+        Assert.Equal(HttpStatusCode.OK, (await fixture.Client.GetAsync("/api/auth/session")).StatusCode);
+        await database.Entry(user).ReloadAsync();
+        Assert.Single(await database.AppUsers.ToArrayAsync());
+        Assert.Single(await database.AppExternalIdentities.ToArrayAsync());
+        Assert.Empty(await database.AppUserRoles.ToArrayAsync());
+        Assert.Equal(employee.Id, user.EmployeeId);
+        Assert.Equal("local-contact@example.invalid", user.UPN);
+        Assert.Equal(fixture.Clock.Now.UtcDateTime, user.LastLoginAt);
+        Assert.All(await database.AuditLog.ToArrayAsync(), entry => Assert.Equal(user.Id, entry.ActorUserId));
+        Assert.Equal(2, await database.AuditLog.CountAsync());
     }
 
     [Fact]

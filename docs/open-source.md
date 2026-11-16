@@ -20,7 +20,7 @@ Never include passwords, tokens, connection strings, patient information, employ
 
 An existing inactive row, changed value, case-only key change or ambiguous key is a conflict, not permission to overwrite. Resolve conflicts through controlled catalog maintenance and create a fresh preview. A successful identical reimport adds nothing. Missing package rows never delete or deactivate stored rows. Applying catalogs does not create external accounts, grant memberships/licenses or verify EHR work.
 
-The first-admin bootstrap/enrollment UI remains unfinished. This importer cannot bootstrap an unknown user, grant permissions or bypass that boundary. Existing installations must use their separately authorized enrollment process before this page can be used.
+First-admin bootstrap is a deployment-only SQL operation; subsequent identity enrollment uses the users.manage-protected API described in authentication.md. Enrollment UI remains separate work. The importer cannot bootstrap an unknown user, grant permissions or bypass enrollment. Each environment still requires explicit authorization and verified enrollment before this page can be used.
 
 ## Package contract (schemaVersion 1)
 
