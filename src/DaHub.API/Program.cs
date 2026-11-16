@@ -29,6 +29,7 @@ builder.AddApiFoundation();
 builder.Services.AddOpenApi();
 builder.Services.AddNotificationQueue();
 builder.Services.AddScoped<SeedImporter>();
+builder.Services.AddScoped<EnrollmentService>();
 builder.Services.AddDaHubAuthentication(builder.Configuration);
 builder.Services.AddDbContext<DaHubDbContext>(options =>
 {
@@ -72,6 +73,7 @@ app.Use(async (context, next) =>
     await next(context);
 });
 app.MapDaHubAuthentication();
+app.MapEnrollment();
 app.MapOrganizationSeeds();
 app.MapFallback("{**path}", () => Results.NotFound()).AllowAnonymous();
 

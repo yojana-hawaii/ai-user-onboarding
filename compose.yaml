@@ -36,6 +36,7 @@ x-backend: &backend
     - ./Directory.Build.props:/workspace/Directory.Build.props:ro
     - ./global.json:/workspace/global.json:ro
     - ./scripts/backend-check.sh:/workspace/scripts/backend-check.sh:ro
+    - ./scripts/bootstrap-admin.sql:/workspace/scripts/bootstrap-admin.sql:ro
     - ./.config:/workspace/.config:ro
     - backend_artifacts:/artifacts
     - nuget_secure:/nuget
