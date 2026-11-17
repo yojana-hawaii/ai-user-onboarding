@@ -186,6 +186,8 @@ Tool references: [Angular coverage](https://angular.dev/guide/testing/code-cover
 
 Browser coverage uses desktop Chrome, Firefox and Safari device profiles. WebKit provides Safari engine coverage; native Safari on macOS remains a release validation step. Linux Playwright execution does not establish native Safari compatibility. Keep the Playwright npm package and Docker image versions aligned when upgrading. See [Playwright browser support](https://playwright.dev/docs/browsers).
 
+Dependency PR #45 pairs `@playwright/test` 1.65.1 with the digest-pinned `v1.65.1-resolute` browser image. The Node 24 browser runtime, temporary npm/APT fixes and container restrictions remain unchanged. See [the browser update verification](docs/development-security.md#playwright-packageimage-alignment--november-16-2026).
+
 For application behavior, follow TDD: write a test that fails for the intended behavior, implement the smallest change that passes, refactor while tests remain green, run the relevant checks, and commit. Backend tests use xUnit; component tests use Angular TestBed/Vitest; browser workflows use Playwright. See CONTRIBUTING.md for security and synthetic-data conventions.
 
 ### PR preparation verification — November 10, 2026

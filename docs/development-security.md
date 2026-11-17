@@ -144,6 +144,12 @@ Reproduce from PowerShell 7 with Docker Desktop running Linux containers:
 ./scripts/test-dev-sql-security.ps1
 ./scripts/verify-security.ps1
 ```
+## Playwright package/image alignment — November 16, 2026
+
+Dependency PR #45's original functional CI failed because Playwright 1.65.1 required Chromium binaries absent from the 1.65.0 image. The runner now uses `mcr.microsoft.com/playwright:v1.65.1-resolute` pinned to registry index digest `sha256:dcf385f7a31aa1cbb0a7a0c97a539142bf70480b661f89f26a774ec1fe2edd1d`, matching the package and lockfile. Node 24, the temporary npm/APT fixes, non-root/read-only/capability restrictions, dedicated browser network and existing gates remain unchanged. Develop is synchronized into this feature branch to resolve historical squash ancestry; no PR is merged. PR #25 remains separate. No persistent migration, deployment or live-provider action is included.
+
+Fresh full local `verify.ps1` passed: 28 unit, 173 credential-free integration/protocol, 19 frontend and all 9 Chromium/Firefox/WebKit cases; coverage, lint and formatting gates passed. Fresh full `verify-security.ps1` passed with no source/history leaks, no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in each backend/frontend/SQL/E2E image. Lower-severity findings are not claimed absent. Separate SQL/SQL-security results from the unchanged schema/runtime EF verification remain reused evidence, not new SQL runs for this browser-only fix. Documentation/diff and final redacted source checks accompany publication. Notion CI/tooling notes preserve exact scope and unchanged acceptance/status/effort. Final commit/current-head hosted results are recorded separately after publication; native Safari, live-provider, multi-instance and deployment/release acceptance remain open.
+
 ## Cross-browser test image — November 8, 2026
 
 The first Ubuntu-based Playwright image failed the HIGH/CRITICAL gate with four HIGH package findings: CVE-2026-109518 in apt/libapt-pkg6.0t64, and CVE-2025-3887 in gstreamer1.0-plugins-bad/libgstreamer-plugins-bad1.0-0. WebKit links the affected codec parser library, so removing the package would break the test engine.
