@@ -1,5 +1,13 @@
 # Development security changes
 
+## EF CLI verification — November 16, 2026
+
+Dependency PR #48 retains dotnet-ef 11.0.0 while the application stays on .NET 10 and EF Core 10.0.14. The CLI restored and ran inside the existing non-root, read-only backend container. Migration discovery listed all six migrations; the model check found no pending changes and idempotent SQL generation succeeded. A separate local CLI probe applied all six migrations to a uniquely named disposable SQL database, rolled back to zero, reapplied them and successfully dropped that database. No persistent application database migration or provider action occurred.
+
+`scripts/backend-check.sh` now restores the local tool and runs offline migration discovery, pending-model verification and idempotent script generation on every functional gate. Generated SQL remains in the ignored container artifact volume. These commands require no database credentials or connection; real SQL acceptance remains separately evidenced.
+
+Fresh local `verify.ps1` passed: 28 unit, 173 credential-free integration/protocol, 19 frontend and 9 Chromium/Firefox/WebKit cases. Backend line coverage API/Infrastructure/Core was 88.52%/90.38%/100%; frontend statements/branches/functions/lines were 93.54%/94.84%/85.36%/96.24%. Separate disposable SQL tests and SQL security passed. Full `verify-security.ps1` passed with no source/history leaks, no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images; lower-severity findings are not claimed absent. Existing gates and container restrictions remain intact. Notion CI/tooling Progress Notes retain this evidence and unchanged acceptance/status/effort. Prior hosted success does not validate these verification changes; final commit/current-head CI evidence is recorded separately in Notion after publication. PR #25 stays separate and no merge is authorized. Live-provider, native Safari, multi-instance and deployment/release acceptance remain open.
+
 ## WBS 1.8 notifications — November 14, 2026
 
 Implemented durable notification intent through `INotificationService`, a separate-worker
