@@ -28,6 +28,8 @@ November 14 profile validation: the full local functional gate, separate disposa
 
 Docker Desktop running Linux containers, Git and **PowerShell 7**. No workstation .NET SDK, Node.js or npm installation is required. Production remains Windows Server 2022 / SQL Server 2022; Windows-specific integrations need separate validation.
 
+The backend verification gate restores the pinned local `dotnet-ef` tool, discovers migrations offline, checks for pending model changes and generates an idempotent SQL script in the container artifact volume. The dotnet-ef 11.0.0 CLI was verified with the existing EF Core 10.0.14 libraries and .NET 10 SDK, including apply/rollback/reapply in a disposable database. See [the tooling verification scope](docs/development-security.md#ef-cli-verification--november-16-2026).
+
 ## First setup and daily startup
 
 ```powershell
