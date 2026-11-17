@@ -2,21 +2,28 @@
 
 Recorded November 2, 2026. Scope: Sprint 1 development setup. These choices implement the agreed Angular / ASP.NET Core architecture without changing business requirements.
 
+Current dependency candidate: November 17, 2026, for final integration PR #51. The table reflects that candidate; earlier dated setup evidence below retains its historical scope. See [the final-candidate verification record](development-security.md#final-dependency-integration-candidate--november-17-2026). Actual final PR/develop results are recorded separately after publication; no main promotion is authorized.
+
+The earlier candidate attempt was blocked by the fresh picomatch HIGH advisory with no upstream patched release. The current remediation uses an independently reviewed patched fork with verified integrity/source/provenance and passing bounded regressions. Fresh full functional/security and separate SQL/SQL-security gates passed for that remediation, including zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images. Ten integrations have historical successful PR/develop runs; final PR #51 publication/current-head and develop CI are recorded separately in Notion. See the linked security record for exact scope and remaining acceptance.
+
 Development runs in Docker Desktop Linux containers on this Windows workstation. No workstation .NET SDK or npm installation was performed or is required. Production remains Windows Server 2022 and SQL Server 2022; Windows-specific integrations need separate validation when implemented.
 
 | Area | Selection | Observed validation |
 | --- | --- | --- |
-| Backend | .NET / ASP.NET Core 10 LTS, `mcr.microsoft.com/dotnet/sdk:10.0` | November 14 dependency integration: SDK 10.0.404 / ASP.NET Core 10.0.15; Release solution build passes with zero warnings/errors |
+| Backend | .NET / ASP.NET Core 10 LTS, `mcr.microsoft.com/dotnet/sdk:10.0-noble` | Same pinned SDK 10.0.404 / ASP.NET Core 10.0.15 servicing image; explicit Noble tag matches the retained Ubuntu fixes |
 | SDK selection | `global.json`: minimum 10.0.100, latest installed stable 10.0 feature band | Resolves to 10.0.404 inside container |
-| Frontend | Angular 22, Node 26 frontend image `node:26-alpine` | Angular/compiler 22.2.5; CLI/build 22.2.6; see November 14 integration evidence |
+| Frontend | Angular 22, Node 26 frontend image `node:26-alpine` | Angular/compiler 22.2.5; CLI/build 22.2.7; final-candidate evidence is linked above |
 | JavaScript runtime | Node 26 frontend / Node 24 browser tests, npm 11.x inside Docker | Frontend Node 26.13.0, npm 11.21.1 (bundled Undici patched to 6.29.1) |
 | TypeScript | 6.0.x | 6.0.3 resolves and compiles |
-| Backend tests | xUnit 2.9.3, VS adapter 3.1.5, Microsoft.NET.Test.Sdk 18.0.0 | API integration test passes; unit project is intentionally empty until domain implementation |
-| API integration host | Microsoft.AspNetCore.Mvc.Testing 10.0.0 | Liveness test passes; no SQL or external-service validation |
+| Backend tests | xUnit 2.9.3, VS adapter 3.1.5, Microsoft.NET.Test.Sdk 18.0.0, Coverlet 10.1.1 | Unit/integration hits are merged freshly; each backend application assembly retains its 80% line threshold |
+| API integration host | Microsoft.AspNetCore.Mvc.Testing 10.0.15 | Credential-free protocol/API and separate disposable SQL suites are verified independently; live providers remain outside scope |
 | Frontend tests | Angular unit-test builder, Vitest, jsdom | Vitest/coverage-v8 5.1.0, jsdom 31.0.0; see November 14 integration evidence |
-| Formatting | .editorconfig, dotnet format, Prettier | Backend and frontend checks pass; Prettier 3.9.10 |
-| Persistence | SQL Server 2022; EF Core SQL Server provider and dotnet-ef 10.0.14 | Complete 31-table first-release schema, catalog seeds, append-only grants and SQL readiness implemented; see [database foundation](database-foundation.md) for current scope and validation |
-| CI | GitHub Actions on Ubuntu, invoking the same Docker verification script | Workflow prepared; local script passes; hosted execution and branch protections pending |
+| Browser tests | Playwright package/image 1.65.1, pinned Node 24 browser runtime | Chromium/Firefox/WebKit; native Safari on macOS remains unverified |
+| Lint | ESLint 10.15.0, angular-eslint 22.6.0 | Existing minimatch override and strict warning gates retained |
+| Glob security remediation | Affected picomatch 4.x overridden to reviewed `@ryotsu/picomatch` 4.0.7-a | Exact integrity/source provenance reviewed; bounded ReDoS/API regressions added on Node 26 and Node 24; reassess when an official verified fix is available |
+| Formatting | .editorconfig, dotnet format, Prettier 3.10.1 | Actual installed Prettier version is lockfile-pinned; no formatter gate reduction |
+| Persistence | SQL Server 2022; EF Core SQL Server provider/design 10.0.14, dotnet-ef CLI 11.0.0 | Existing 32-table schema and permission boundaries unchanged; CLI apply/rollback/reapply verified in a disposable database; no operational catalog or persistent migration is included |
+| CI | GitHub Actions on Ubuntu, invoking the same Docker verification scripts | First ten sequential PR and develop runs passed; strict current build/security checks, administrators and linear history retained; final PR #51/current-develop results remain separately evidenced |
 
 ## Verification evidence
 

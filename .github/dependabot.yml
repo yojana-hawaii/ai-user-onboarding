@@ -2,10 +2,12 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /src/dahub-web
+    target-branch: develop
     schedule:
       interval: weekly
   - package-ecosystem: nuget
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
   - package-ecosystem: docker
@@ -13,15 +15,21 @@ updates:
       - /.docker/backend
       - /.docker/frontend
       - /.docker/scanner
+    target-branch: develop
+    ignore:
+      - dependency-name: dotnet/sdk
+        update-types: [version-update:semver-major]
     schedule:
       interval: weekly
   - package-ecosystem: github-actions
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
 
 
   - package-ecosystem: docker-compose
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly

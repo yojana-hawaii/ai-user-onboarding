@@ -167,6 +167,7 @@ services:
       - ./src/dahub-web/e2e:/workspace/src/dahub-web/e2e:ro
       - ./src/dahub-web/playwright.config.ts:/workspace/src/dahub-web/playwright.config.ts:ro
       - ./src/dahub-web/.prettierrc.json:/workspace/src/dahub-web/.prettierrc.json:ro
+      - ./src/dahub-web/picomatch-security.cjs:/workspace/src/dahub-web/picomatch-security.cjs:ro
       - check_modules_secure:/workspace/src/dahub-web/node_modules
       - check_cache_secure:/workspace/src/dahub-web/.angular
       - check_dist_secure:/workspace/src/dahub-web/dist
