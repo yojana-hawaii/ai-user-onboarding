@@ -1,5 +1,5 @@
 FROM node:24-bookworm-slim@sha256:01d566e8d94d8c619591d78652babfccd3c6992a3dffa9ed5ab39e11cf6c70e9 AS node-runtime
-FROM mcr.microsoft.com/playwright:v1.65.0-resolute@sha256:4d70b558dbaff71611b2f3e7a32aa2b4d42cfc892078ad368cb7ea229c2ffd1f
+FROM mcr.microsoft.com/playwright:v1.65.1-resolute@sha256:dcf385f7a31aa1cbb0a7a0c97a539142bf70480b661f89f26a774ec1fe2edd1d
 # Keep Angular's Node 24 toolchain while using the matching official browser binaries.
 RUN apt-get purge -y nodejs && rm -rf /usr/lib/node_modules
 COPY --from=node-runtime /usr/local/ /usr/local/
