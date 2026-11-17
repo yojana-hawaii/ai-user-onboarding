@@ -140,6 +140,7 @@ For connected writes, inspect every result. Stop the affected write batch on the
 Development uses Docker Desktop Linux containers and PowerShell 7. Workstation .NET/Node/npm installations are not required. Consult the checked-in manifests, lockfile, Dockerfiles, and README for current versions and setup.
 
 - ./scripts/verify.ps1: Release builds, .NET analyzers, backend coverage, dotnet format, Angular ESLint, frontend build/coverage, Prettier, and three-engine browser tests.
+- Backend verification also restores the pinned dotnet-ef CLI, lists migrations without a connection, checks pending model changes and generates idempotent SQL in the artifact volume. These offline checks do not apply migrations; disposable SQL CLI acceptance is recorded separately.
 - ./scripts/verify-security.ps1: secret/dependency gates and all four image scans. Archives are copied into Docker-local scanner storage before analysis and cleaned up afterward; the operational scan timeout is 20 minutes.
 - ./scripts/test-e2e.ps1: browser smoke tests against the isolated Angular/API test environment.
 - ./scripts/test-dev-sql-security.ps1: SQL encryption, feature, and container restriction checks.
