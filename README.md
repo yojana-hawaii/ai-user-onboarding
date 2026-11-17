@@ -126,6 +126,8 @@ Run the checks from the workspace root:
 
 Repository administrators can explicitly apply the safeguards with `./scripts/configure-github-security.ps1 -Owner YOUR_OWNER -Repository YOUR_REPOSITORY -Apply`. The script preserves existing branch protection rather than overwriting a custom policy. Credentials stay in process memory and are not written to files or output.
 
+Dependency PR #41 retains .NET 10 LTS on the explicit `10.0-noble` tag and the already-current servicing digest. Its proposed Dependabot configuration targets `develop` for scheduled version updates and excludes automatic SDK major upgrades. These settings take effect after merge/promotion of the configuration; security updates continue to target the default branch. No repository default-branch or protection change is included. See [the LTS and dependency-routing decision](docs/development-security.md#net-10-lts-and-dependency-routing--november-16-2026).
+
 The first image scan downloads a vulnerability database into a dedicated Docker cache. Temporary image archives require local disk space and are removed after scanning. Scanners receive no Docker socket or credentials. Revisit the temporary Ubuntu/npm package patches when refreshing upstream images; remove them only after the updated images pass security checks.
 
 Local verification on **November 7, 2026** passed backend/frontend builds, one API integration test, one component test, formatting, secret scans and dependency audits. Both development images reported **zero HIGH/CRITICAL findings** after patching the reported vulnerabilities. HTTPS checks passed with certificate validation enabled. This records that verification date, not a guarantee against future advisories.

@@ -82,6 +82,7 @@ Report what changed, what was verified, and any remaining limitation. Do not des
 
 - Internal employee lifecycle application for a nonprofit community health center. Keep patient PHI out of application records, tickets, fixtures, and logs.
 - Angular frontend and ASP.NET Core backend; on-premises Windows Server 2022 and SQL Server 2022. Confirm supported framework/runtime versions before scaffolding; do not assume an old version from historical WBS text.
+- The current backend remains on .NET 10 LTS. Preserve the digest-pinned Noble SDK image and its matching Ubuntu package fixes; SDK major upgrades require an explicit framework decision. Scheduled Dependabot version updates target develop after the proposed configuration is merged/promoted; security updates still use the default branch.
 - Phase 1 sign-in is direct Okta OIDC with MFA. Direct Entra ID sign-in is future work. AD, Entra ID, and Microsoft 365 provisioning/revocation remain in Phase 1.
 - Application roles and permissions are local, provider-independent data. The confirmed requirements govern detailed approval, urgent execution, delegation, scheduling, retention, and completion behavior.
 - Helpdesk choice remains SysAid or ManageEngine ServiceDesk Plus On-Premises. Use a mock provider until a provider and its integration configuration are confirmed. Equipment assignment and return tracking are deferred.
