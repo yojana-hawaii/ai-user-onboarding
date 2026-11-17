@@ -82,6 +82,7 @@ Report what changed, what was verified, and any remaining limitation. Do not des
 
 - Internal employee lifecycle application for a nonprofit community health center. Keep patient PHI out of application records, tickets, fixtures, and logs.
 - Angular frontend and ASP.NET Core backend; on-premises Windows Server 2022 and SQL Server 2022. Confirm supported framework/runtime versions before scaffolding; do not assume an old version from historical WBS text.
+- The current backend remains on .NET 10 LTS. Preserve the digest-pinned Noble SDK image and its matching Ubuntu package fixes; SDK major upgrades require an explicit framework decision. Scheduled Dependabot version updates target develop after the proposed configuration is merged/promoted; security updates still use the default branch.
 - Phase 1 sign-in is direct Okta OIDC with MFA. Direct Entra ID sign-in is future work. AD, Entra ID, and Microsoft 365 provisioning/revocation remain in Phase 1.
 - Application roles and permissions are local, provider-independent data. The confirmed requirements govern detailed approval, urgent execution, delegation, scheduling, retention, and completion behavior.
 - Helpdesk choice remains SysAid or ManageEngine ServiceDesk Plus On-Premises. Use a mock provider until a provider and its integration configuration are confirmed. Equipment assignment and return tracking are deferred.
@@ -141,6 +142,7 @@ For connected writes, inspect every result. Stop the affected write batch on the
 Development uses Docker Desktop Linux containers and PowerShell 7. Workstation .NET/Node/npm installations are not required. Consult the checked-in manifests, lockfile, Dockerfiles, and README for current versions and setup.
 
 - ./scripts/verify.ps1: Release builds, .NET analyzers, backend coverage, dotnet format, Angular ESLint, frontend build/coverage, Prettier, and three-engine browser tests.
+- Backend verification also restores the pinned dotnet-ef CLI, lists migrations without a connection, checks pending model changes and generates idempotent SQL in the artifact volume. These offline checks do not apply migrations; disposable SQL CLI acceptance is recorded separately.
 - ./scripts/verify-security.ps1: secret/dependency gates and all four image scans. Archives are copied into Docker-local scanner storage before analysis and cleaned up afterward; the operational scan timeout is 20 minutes.
 - ./scripts/test-e2e.ps1: browser smoke tests against the isolated Angular/API test environment.
 - ./scripts/test-dev-sql-security.ps1: SQL encryption, feature, and container restriction checks.

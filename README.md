@@ -28,6 +28,8 @@ November 14 profile validation: the full local functional gate, separate disposa
 
 Docker Desktop running Linux containers, Git and **PowerShell 7**. No workstation .NET SDK, Node.js or npm installation is required. Production remains Windows Server 2022 / SQL Server 2022; Windows-specific integrations need separate validation.
 
+The backend verification gate restores the pinned local `dotnet-ef` tool, discovers migrations offline, checks for pending model changes and generates an idempotent SQL script in the container artifact volume. The dotnet-ef 11.0.0 CLI was verified with the existing EF Core 10.0.14 libraries and .NET 10 SDK, including apply/rollback/reapply in a disposable database. See [the tooling verification scope](docs/development-security.md#ef-cli-verification--november-16-2026).
+
 ## First setup and daily startup
 
 ```powershell
@@ -123,6 +125,8 @@ Run the checks from the workspace root:
 ```
 
 Repository administrators can explicitly apply the safeguards with `./scripts/configure-github-security.ps1 -Owner YOUR_OWNER -Repository YOUR_REPOSITORY -Apply`. The script preserves existing branch protection rather than overwriting a custom policy. Credentials stay in process memory and are not written to files or output.
+
+Dependency PR #41 retains .NET 10 LTS on the explicit `10.0-noble` tag and the already-current servicing digest. Its proposed Dependabot configuration targets `develop` for scheduled version updates and excludes automatic SDK major upgrades. These settings take effect after merge/promotion of the configuration; security updates continue to target the default branch. No repository default-branch or protection change is included. See [the LTS and dependency-routing decision](docs/development-security.md#net-10-lts-and-dependency-routing--november-16-2026).
 
 The first image scan downloads a vulnerability database into a dedicated Docker cache. Temporary image archives require local disk space and are removed after scanning. Scanners receive no Docker socket or credentials. Revisit the temporary Ubuntu/npm package patches when refreshing upstream images; remove them only after the updated images pass security checks.
 
