@@ -19,6 +19,9 @@ try {
     docker compose run --rm --no-deps web-check npm audit --package-lock-only --audit-level=high
     if ($LASTEXITCODE -ne 0) { throw 'npm dependency audit failed.' }
 
+    docker compose run --rm --no-deps web-check sh -c 'npm ci --ignore-scripts --no-audit --no-fund && npm run security:picomatch'
+    if ($LASTEXITCODE -ne 0) { throw 'Patched glob dependency security regressions failed.' }
+
     $archiveDirectory = Join-Path (Get-Location) '.tools/security'
     New-Item -ItemType Directory -Path $archiveDirectory -Force | Out-Null
     docker compose -f compose.yaml -f compose.e2e.yaml build backend-check web-check sql e2e

@@ -13,7 +13,7 @@ Push-Location $workspaceRoot
 try {
     docker compose run --rm --no-deps backend-check sh /workspace/scripts/backend-check.sh
     if ($LASTEXITCODE -ne 0) { throw 'Backend verification failed.' }
-    docker compose run --rm --no-deps web-check sh -c 'npm ci && npm run lint && npm run build && npm test && npm run format:check'
+    docker compose run --rm --no-deps web-check sh -c 'npm ci && npm run security:picomatch && npm run lint && npm run build && npm test && npm run format:check'
     if ($LASTEXITCODE -ne 0) { throw 'Frontend verification failed.' }
     & (Join-Path $PSScriptRoot 'test-e2e.ps1')
 }

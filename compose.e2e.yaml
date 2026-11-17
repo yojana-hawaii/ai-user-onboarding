@@ -29,7 +29,7 @@ services:
     pids_limit: 512
     tmpfs:
       - /tmp:mode=1777,nosuid,nodev,size=1073741824
-    command: sh -c 'mkdir -p /tmp/pwuser/runtime && chmod 700 /tmp/pwuser/runtime && npm ci --no-audit --no-fund && npm run test:e2e'
+    command: sh -c 'mkdir -p /tmp/pwuser/runtime && chmod 700 /tmp/pwuser/runtime && npm ci --no-audit --no-fund && npm run security:picomatch && npm run test:e2e'
     volumes:
       - e2e_modules:/workspace/src/dahub-web/node_modules
       - e2e_cache:/workspace/src/dahub-web/.angular
