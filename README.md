@@ -28,6 +28,8 @@ November 14 profile validation: the full local functional gate, separate disposa
 
 Docker Desktop running Linux containers, Git and **PowerShell 7**. No workstation .NET SDK, Node.js or npm installation is required. Production remains Windows Server 2022 / SQL Server 2022; Windows-specific integrations need separate validation.
 
+The backend verification gate restores the pinned local `dotnet-ef` tool, discovers migrations offline, checks for pending model changes and generates an idempotent SQL script in the container artifact volume. The dotnet-ef 11.0.0 CLI was verified with the existing EF Core 10.0.14 libraries and .NET 10 SDK, including apply/rollback/reapply in a disposable database. See [the tooling verification scope](docs/development-security.md#ef-cli-verification--november-16-2026).
+
 ## First setup and daily startup
 
 ```powershell
@@ -124,6 +126,8 @@ Run the checks from the workspace root:
 
 Repository administrators can explicitly apply the safeguards with `./scripts/configure-github-security.ps1 -Owner YOUR_OWNER -Repository YOUR_REPOSITORY -Apply`. The script preserves existing branch protection rather than overwriting a custom policy. Credentials stay in process memory and are not written to files or output.
 
+Dependency PR #41 retains .NET 10 LTS on the explicit `10.0-noble` tag and the already-current servicing digest. Its proposed Dependabot configuration targets `develop` for scheduled version updates and excludes automatic SDK major upgrades. These settings take effect after merge/promotion of the configuration; security updates continue to target the default branch. No repository default-branch or protection change is included. See [the LTS and dependency-routing decision](docs/development-security.md#net-10-lts-and-dependency-routing--november-16-2026).
+
 The first image scan downloads a vulnerability database into a dedicated Docker cache. Temporary image archives require local disk space and are removed after scanning. Scanners receive no Docker socket or credentials. Revisit the temporary Ubuntu/npm package patches when refreshing upstream images; remove them only after the updated images pass security checks.
 
 Local verification on **November 7, 2026** passed backend/frontend builds, one API integration test, one component test, formatting, secret scans and dependency audits. Both development images reported **zero HIGH/CRITICAL findings** after patching the reported vulnerabilities. HTTPS checks passed with certificate validation enabled. This records that verification date, not a guarantee against future advisories.
@@ -182,6 +186,8 @@ Tool references: [Angular coverage](https://angular.dev/guide/testing/code-cover
 
 Browser coverage uses desktop Chrome, Firefox and Safari device profiles. WebKit provides Safari engine coverage; native Safari on macOS remains a release validation step. Linux Playwright execution does not establish native Safari compatibility. Keep the Playwright npm package and Docker image versions aligned when upgrading. See [Playwright browser support](https://playwright.dev/docs/browsers).
 
+Dependency PR #45 pairs `@playwright/test` 1.65.1 with the digest-pinned `v1.65.1-resolute` browser image. The Node 24 browser runtime, temporary npm/APT fixes and container restrictions remain unchanged. See [the browser update verification](docs/development-security.md#playwright-packageimage-alignment--november-16-2026).
+
 For application behavior, follow TDD: write a test that fails for the intended behavior, implement the smallest change that passes, refactor while tests remain green, run the relevant checks, and commit. Backend tests use xUnit; component tests use Angular TestBed/Vitest; browser workflows use Playwright. See CONTRIBUTING.md for security and synthetic-data conventions.
 
 ### PR preparation verification — November 10, 2026
@@ -211,6 +217,18 @@ Draft PR #24 (private project evidence) publishes implementation commit `155c784
 The PR #24 security review adds exact application-level issuer/subject comparisons to session refresh and privileged authorization checks: SQL Server equality can ignore trailing spaces even under binary collation. Disposable SQL regressions cover both padded claims and changed stored identity keys. Apply the additional `InvalidatePermissionKeyChanges` migration before deploying the API: it invalidates authorization when a permission key changes only by trailing spaces. Non-400 `BadHttpRequestException` responses now use the correct HTTP reason phrase in ProblemDetails. See the [review verification record](docs/development-security.md#pr-24-security-and-acceptance-review--november-10-2026). At review, PRs #17, #22, #23 and #24 were closed and unmerged; the user authorized reopening #24 as a draft. Its prerequisite changes still need integration before release. Deployment/live-provider acceptance remains open.
 
 Both full local gates passed after the review fixes: 8 unit, 93 credential-free integration/protocol, 12 frontend and 6 Chromium/Firefox/WebKit tests; the disposable SQL test and SQL security checks passed separately. Secret/dependency gates passed and all four images reported zero HIGH/CRITICAL findings. Current-head hosted evidence is recorded separately in PR #24 and the related Notion tasks.
+
+## Angular CLI integration checkpoint — November 17, 2026
+
+Eight dependency PRs are merged and have passed their distinct develop runs. PR #44's overlapping Angular manifest/lockfile changes are resolved with CLI and build both at 22.2.7, retaining ESLint 10.15.0, Playwright 1.65.1 and existing security overrides. The lockfile was regenerated without force or legacy-peer-deps and deduplicates matching DevKit packages. Fresh candidate verification and exact-head hosted results are recorded separately in [the security handoff](docs/development-security.md#angular-cli-integration-checkpoint--november-17-2026) and Notion. PR #44 is still unmerged at this preparation snapshot; main promotion remains prohibited and PR #25 stays separate.
+
+The resolved CLI candidate passed fresh full local functional/security gates, including all nine browser cases and all four image scans. These are local candidate results; final commit/current-head PR and develop CI evidence is recorded separately in Notion. No separate SQL runtime test was rerun for this frontend-only resolution.
+
+## Sequential dependency integration — November 16, 2026
+
+The user authorized integrating dependency PRs #41–#51 into develop one at a time, requiring fresh combined-base PR checks and a separate successful develop push run before advancing. The first four (#48, #41, #45, #47) are merged and passed their distinct develop runs. PR #50's synchronization conflict is resolved by retaining both Coverlet 10.1.1 and MVC Testing 10.0.15; verification of that combined candidate is recorded in [the integration security handoff](docs/development-security.md#sequential-dependency-integration--november-16-2026). No PR #50 merge or new hosted result is claimed by this preparation note. Main promotion is not authorized, PR #25 stays separate and existing live-provider/native Safari/deployment/release criteria remain open.
+
+The resolved PR #50 candidate passed fresh full local functional/security gates, the separate real SQL test and SQL security checks. These results precede publication and do not claim new hosted acceptance; final head/merge/develop CI evidence is recorded separately in Notion.
 
 ## Dependabot integration — November 14, 2026
 
