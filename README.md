@@ -218,6 +218,12 @@ The PR #24 security review adds exact application-level issuer/subject compariso
 
 Both full local gates passed after the review fixes: 8 unit, 93 credential-free integration/protocol, 12 frontend and 6 Chromium/Firefox/WebKit tests; the disposable SQL test and SQL security checks passed separately. Secret/dependency gates passed and all four images reported zero HIGH/CRITICAL findings. Current-head hosted evidence is recorded separately in PR #24 and the related Notion tasks.
 
+## Sequential dependency integration — November 16, 2026
+
+The user authorized integrating dependency PRs #41–#51 into develop one at a time, requiring fresh combined-base PR checks and a separate successful develop push run before advancing. The first four (#48, #41, #45, #47) are merged and passed their distinct develop runs. PR #50's synchronization conflict is resolved by retaining both Coverlet 10.1.1 and MVC Testing 10.0.15; verification of that combined candidate is recorded in [the integration security handoff](docs/development-security.md#sequential-dependency-integration--november-16-2026). No PR #50 merge or new hosted result is claimed by this preparation note. Main promotion is not authorized, PR #25 stays separate and existing live-provider/native Safari/deployment/release criteria remain open.
+
+The resolved PR #50 candidate passed fresh full local functional/security gates, the separate real SQL test and SQL security checks. These results precede publication and do not claim new hosted acceptance; final head/merge/develop CI evidence is recorded separately in Notion.
+
 ## Dependabot integration — November 14, 2026
 
 Eight existing Dependabot branches are integrated on `feature/dependabot-to-develop` for develop: Angular 22.2.5 / CLI/build 22.2.6, jsdom 31.0.0, Vitest/coverage-v8 5.1.0, Node 26 and Trivy 0.76.2. The SDK proposal is resolved to patched SDK 10.0.404 / ASP.NET Core 10.0.15 rather than the vulnerable runtime in the older proposed digest. Browser testing retains its pinned Node 24/Playwright image; package engines support both Node lines. Existing dependency fixes, container restrictions and verification gates remain intact. See the [dependency integration record](docs/development-security.md#dependabot-integration--november-14-2026) for verification and merge evidence. UI-shell PR #25 remains separate; no deployment or production change is included.
