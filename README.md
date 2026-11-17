@@ -218,6 +218,12 @@ The PR #24 security review adds exact application-level issuer/subject compariso
 
 Both full local gates passed after the review fixes: 8 unit, 93 credential-free integration/protocol, 12 frontend and 6 Chromium/Firefox/WebKit tests; the disposable SQL test and SQL security checks passed separately. Secret/dependency gates passed and all four images reported zero HIGH/CRITICAL findings. Current-head hosted evidence is recorded separately in PR #24 and the related Notion tasks.
 
+## Angular CLI integration checkpoint — November 17, 2026
+
+Eight dependency PRs are merged and have passed their distinct develop runs. PR #44's overlapping Angular manifest/lockfile changes are resolved with CLI and build both at 22.2.7, retaining ESLint 10.15.0, Playwright 1.65.1 and existing security overrides. The lockfile was regenerated without force or legacy-peer-deps and deduplicates matching DevKit packages. Fresh candidate verification and exact-head hosted results are recorded separately in [the security handoff](docs/development-security.md#angular-cli-integration-checkpoint--november-17-2026) and Notion. PR #44 is still unmerged at this preparation snapshot; main promotion remains prohibited and PR #25 stays separate.
+
+The resolved CLI candidate passed fresh full local functional/security gates, including all nine browser cases and all four image scans. These are local candidate results; final commit/current-head PR and develop CI evidence is recorded separately in Notion. No separate SQL runtime test was rerun for this frontend-only resolution.
+
 ## Sequential dependency integration — November 16, 2026
 
 The user authorized integrating dependency PRs #41–#51 into develop one at a time, requiring fresh combined-base PR checks and a separate successful develop push run before advancing. The first four (#48, #41, #45, #47) are merged and passed their distinct develop runs. PR #50's synchronization conflict is resolved by retaining both Coverlet 10.1.1 and MVC Testing 10.0.15; verification of that combined candidate is recorded in [the integration security handoff](docs/development-security.md#sequential-dependency-integration--november-16-2026). No PR #50 merge or new hosted result is claimed by this preparation note. Main promotion is not authorized, PR #25 stays separate and existing live-provider/native Safari/deployment/release criteria remain open.
