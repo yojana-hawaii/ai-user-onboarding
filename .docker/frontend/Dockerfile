@@ -1,6 +1,6 @@
 FROM node:26-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216
-# npm 11.21.1 fixes brace-expansion; apply the compatible Undici security patch until npm bundles it.
-RUN npm install --global npm@11.21.1 --ignore-scripts && npm install --prefix /tmp/npm-security --no-save --ignore-scripts --omit=dev --package-lock=false undici@6.29.1 && rm -rf /usr/local/lib/node_modules/npm/node_modules/undici && mv /tmp/npm-security/node_modules/undici /usr/local/lib/node_modules/npm/node_modules/undici && rm -rf /tmp/npm-security && npm cache clean --force
+# Keep the reviewed Undici and picomatch fixes until npm bundles verified remediations.
+RUN npm install --global npm@11.21.1 --ignore-scripts && npm install --prefix /tmp/npm-security --ignore-scripts --omit=dev undici@6.29.1 picomatch@npm:@ryotsu/picomatch@4.0.7-a && node -e "require('node:assert/strict').equal(require('/tmp/npm-security/package-lock.json').packages['node_modules/picomatch'].integrity, 'sha512-JroBFEmaejC7szGSfqOhF1QZHLKvX2wTA1+fWyfkpy3BjzdQKNPLKa2FtgeKVUDy5/UPUNkXEeCHJ5ZRBMLTVA==')" && rm -rf /usr/local/lib/node_modules/npm/node_modules/undici /usr/local/lib/node_modules/npm/node_modules/tinyglobby/node_modules/picomatch && mv /tmp/npm-security/node_modules/undici /usr/local/lib/node_modules/npm/node_modules/undici && mv /tmp/npm-security/node_modules/picomatch /usr/local/lib/node_modules/npm/node_modules/tinyglobby/node_modules/picomatch && rm -rf /tmp/npm-security && npm cache clean --force
 RUN install -d -o 1000 -g 1000 /home/node/.npm /workspace/src/dahub-web/node_modules /workspace/src/dahub-web/.angular /workspace/src/dahub-web/dist /workspace/src/dahub-web/coverage
 USER 1000:1000
 WORKDIR /workspace/src/dahub-web

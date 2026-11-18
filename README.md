@@ -1,5 +1,11 @@
 # DaHub development workspace
 
+Dependency integration completed November 17, 2026: all eleven dependency PRs, including the reviewed picomatch remediation in #51, are merged into develop. Exact-head PR CI and separate develop push CI passed; see [AGENTS.md section 26](AGENTS.md#26-dependency-integration-complete--november-17-2026) for revisions, evidence and maintenance guidance. Earlier dependency preparation checkpoints are historical. Main remains unchanged and PR #25 remains separate; deployment, live-provider and release acceptance remain open.
+
+November 18 follow-up: the new pre-PR image scan found a separate vulnerable picomatch bundled inside npm, despite the clean application audit. Frontend and browser tool images now apply the reviewed, integrity-checked patch to npm's nested copy, and the regression suite covers both installed copies. See [the tool-image security record](docs/development-security.md#npm-tool-image-picomatch-remediation--november-18-2026) for verification and the temporary-patch maintenance boundary. Publication requires fresh complete gates; no merge or main promotion is authorized by this follow-up.
+
+The follow-up passed fresh full local functional and security gates: ten application/npm security regressions on both Node versions, 28 unit/173 credential-free integration/19 frontend/nine browser tests, preserved coverage/lint/format checks, no source/history leaks (91 local commits), no NuGet advisories, zero npm vulnerabilities and zero HIGH/CRITICAL findings in all four images. Local SQL runtime tests were not rerun for this tool-image change; exact published-head hosted checks are recorded separately in Notion. Existing deployment and release limitations remain open.
+
 Angular frontend, ASP.NET Core API, domain/infrastructure libraries and tests. All 32 first-release schema tables, Okta sign-in/server-side sessions, local permission policies and the API foundation are implemented. Employee workflows and live deployment/provider acceptance remain subsequent work.
 
 ## Open-source goal and current readiness
