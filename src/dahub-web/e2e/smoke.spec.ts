@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-test('home page and fallback route render correctly', async ({ page }) => {
+test('home and URL-preserving 404 render correctly', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'DaHub', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Sign in with Okta' })).toBeVisible();
   await page.goto('/unknown-route');
-  await expect(page.getByRole('heading', { name: 'DaHub', exact: true })).toBeVisible();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+  await expect(page).toHaveURL(/\/unknown-route$/);
 });
 
 test.beforeAll(async ({ request }) => {
