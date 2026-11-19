@@ -15,6 +15,20 @@ public static class NotificationRegistration
     {
         services.AddNotificationQueue();
         services.AddScoped<IJobHandler, NotificationRetryHandler>();
+        var alertSection = configuration.GetSection("Notifications:WorkerFailure");
+        var alertDestinations = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var destination in alertSection.GetChildren())
+        {
+            if (destination.Key is not ("Teams" or "Slack" or "Email"))
+                throw new InvalidOperationException("Unsupported worker failure alert channel.");
+            var recipient = destination.Value;
+            if (destination.Key == "Email") recipient = Address(recipient);
+            else if (string.IsNullOrWhiteSpace(recipient) || recipient.Length > 200
+                || !recipient.All(x => char.IsAsciiLetterOrDigit(x) || x is '-' or '_'))
+                throw new InvalidOperationException("Invalid worker failure alert destination alias.");
+            alertDestinations.Add(destination.Key, recipient);
+        }
+        services.AddSingleton(new WorkerFailureAlerts(alertDestinations));
         foreach (var channel in new[] { "Teams", "Slack", "Email", "SMS" })
         {
             var section = configuration.GetSection("Notifications:" + channel);
@@ -29,6 +43,8 @@ public static class NotificationRegistration
                 var from = Address(section["From"]);
                 var recipients = section.GetSection("Recipients").GetChildren().Select(x => Address(x.Value)).ToHashSet(StringComparer.OrdinalIgnoreCase);
                 if (recipients.Count == 0) throw new InvalidOperationException("Approved email recipients are required.");
+                if (alertDestinations.TryGetValue(channel, out var recipient) && !recipients.Contains(recipient))
+                    throw new InvalidOperationException("Worker failure email must be an approved email recipient.");
                 services.AddSingleton<INotificationTransport>(new SmtpTransport(new SmtpRelayDelivery(host!, port), from, recipients));
                 continue;
             }
@@ -44,6 +60,8 @@ public static class NotificationRegistration
                 destinations.Add(destination.Key, endpoint);
             }
             if (destinations.Count == 0) throw new InvalidOperationException("Approved webhook destinations are required.");
+            if (alertDestinations.TryGetValue(channel, out var alias) && !destinations.ContainsKey(alias))
+                throw new InvalidOperationException("Worker failure webhook must use an approved destination alias.");
             // Construct directly to exclude request/URI logging handlers from HttpClientFactory.
             services.AddSingleton<INotificationTransport>(_ => new WebhookTransport(channel,
                 new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false })

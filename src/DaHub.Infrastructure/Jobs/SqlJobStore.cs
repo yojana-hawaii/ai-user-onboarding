@@ -1,11 +1,12 @@
 using DaHub.Core.Entities;
 using DaHub.Core.Jobs;
+using DaHub.Infrastructure.Notifications;
 using DaHub.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace DaHub.Infrastructure.Jobs;
 
-public sealed class SqlJobStore(DaHubDbContext database) : IJobStore
+public sealed class SqlJobStore(DaHubDbContext database, WorkerFailureAlerts? failureAlerts = null) : IJobStore
 {
     public async Task<BackgroundJob?> ClaimAsync(CancellationToken cancellationToken)
     {
@@ -66,6 +67,11 @@ public sealed class SqlJobStore(DaHubDbContext database) : IJobStore
             .ExecuteUpdateAsync(set => set.SetProperty(x => x.Outcome, retry ? "Retry" : status)
                 .SetProperty(x => x.CompletedAt, now).SetProperty(x => x.RetryAt, retry ? deadline : (DateTime?)null)
                 .SetProperty(x => x.ErrorCode, code), cancellationToken);
+        if (status == "Failed" && failureAlerts is not null)
+        {
+            failureAlerts.AddToQueue(database, job, now);
+            await database.SaveChangesAsync(cancellationToken);
+        }
         await transaction.CommitAsync(cancellationToken);
     }
 
@@ -81,9 +87,14 @@ public sealed class SqlJobStore(DaHubDbContext database) : IJobStore
             WHERE Status = N'InProgress' AND StartedAt < DATEADD(minute, -5, SYSUTCDATETIME());
             """).AsNoTracking().ToListAsync(cancellationToken);
         foreach (var job in jobs)
+        {
             await database.BackgroundJobAttempts.Where(x => x.JobId == job.Id && x.Attempt == job.AttemptCount && x.Outcome == "InProgress")
                 .ExecuteUpdateAsync(set => set.SetProperty(x => x.Outcome, "Failed")
                     .SetProperty(x => x.CompletedAt, job.CompletedAt).SetProperty(x => x.ErrorCode, "ReconciliationRequired"), cancellationToken);
+            failureAlerts?.AddToQueue(database, job, job.CompletedAt!.Value);
+        }
+        if (jobs.Count > 0 && failureAlerts is not null)
+            await database.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return jobs.Count;
     }

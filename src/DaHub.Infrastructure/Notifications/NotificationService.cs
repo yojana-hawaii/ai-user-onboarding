@@ -9,19 +9,23 @@ public sealed class NotificationService(DaHubDbContext database, TimeProvider cl
 {
     public async Task<long> EnqueueAsync(NotificationMessage message, CancellationToken cancellationToken)
     {
+        var job = CreateJob(message, clock.GetUtcNow().UtcDateTime);
+        database.BackgroundJobs.Add(job);
+        await database.SaveChangesAsync(cancellationToken);
+        return job.Id;
+    }
+
+    internal static BackgroundJob CreateJob(NotificationMessage message, DateTime scheduledAt)
+    {
         Validate(message);
-        var now = clock.GetUtcNow().UtcDateTime;
-        var job = new BackgroundJob
+        return new BackgroundJob
         {
             JobType = "NotificationRetry",
             RequestId = message.RequestId,
             Payload = JsonSerializer.Serialize(message),
-            CreatedAt = now,
-            ScheduledAt = now
+            CreatedAt = scheduledAt,
+            ScheduledAt = scheduledAt
         };
-        database.BackgroundJobs.Add(job);
-        await database.SaveChangesAsync(cancellationToken);
-        return job.Id;
     }
 
     internal static void Validate(NotificationMessage message)

@@ -1,8 +1,14 @@
 using DaHub.Core.Entities;
 using DaHub.Core.Jobs;
+using DaHub.Core.Notifications;
 using DaHub.Infrastructure.Jobs;
+using DaHub.Infrastructure.Notifications;
 using DaHub.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace DaHub.Tests.Integration;
@@ -32,7 +38,38 @@ internal static class WorkerSqlAssertions
         Assert.Equal(1, claim.AttemptCount);
         Assert.Equal(4, claim.MaxAttempts);
         Assert.Single(await seed.BackgroundJobAttempts.Where(x => x.JobId == job.Id).ToListAsync());
-        var store = new SqlJobStore(seed);
+        var services = new ServiceCollection();
+        services.AddDbContext<DaHubDbContext>(builder => builder.UseSqlServer(connectionString));
+        services.AddScoped<IJobStore, SqlJobStore>();
+        services.AddNotificationDelivery(new ConfigurationBuilder().AddInMemoryCollection(
+            new Dictionary<string, string?> { ["Notifications:WorkerFailure:Teams"] = "SyntheticIT" }).Build());
+        var transport = new TestTransport();
+        services.RemoveAll<INotificationTransport>();
+        services.AddSingleton<INotificationTransport>(transport);
+        await using var provider = services.BuildServiceProvider();
+        using var worker = new JobWorker(provider.GetRequiredService<IServiceScopeFactory>(), NullLogger<JobWorker>.Instance);
+        var store = new SqlJobStore(seed, provider.GetRequiredService<WorkerFailureAlerts>());
+        async Task VerifyAlertAsync(long failedId, int? requestId, bool accepted = false)
+        {
+            var alert = await seed.BackgroundJobs.AsNoTracking()
+                .SingleAsync(x => x.JobType == "NotificationRetry" && x.Status == "Queued");
+            Assert.Equal(requestId, alert.RequestId);
+            var message = System.Text.Json.JsonSerializer.Deserialize<NotificationMessage>(alert.Payload!);
+            Assert.NotNull(message);
+            Assert.Equal("SyntheticIT", message.Recipient);
+            Assert.Equal("WorkerFailure", message.NotificationType);
+            Assert.Contains($"Background job {failedId} failed", message.Body);
+            transport.Outcome = accepted ? DeliveryOutcome.Accepted : DeliveryOutcome.PermanentFailure;
+            transport.LastMessage = null;
+            Assert.True(await worker.RunOnceAsync(CancellationToken.None));
+            Assert.Equal(message, transport.LastMessage);
+            var saved = await seed.BackgroundJobs.AsNoTracking().SingleAsync(x => x.Id == alert.Id);
+            Assert.Equal(accepted ? "Completed" : "Failed", saved.Status);
+            var delivery = await seed.NotificationLog.AsNoTracking().Where(x => x.NotificationType == "WorkerFailure").OrderByDescending(x => x.Id).FirstAsync();
+            Assert.Equal(accepted ? "Sent" : "Failed", delivery.Status);
+            Assert.Equal(accepted, delivery.DeliveredAt.HasValue);
+            Assert.False(await worker.RunOnceAsync(CancellationToken.None));
+        }
         for (var attempt = 1; attempt <= 4; attempt++)
         {
             await store.FinishAsync(claim, new JobResult(JobOutcome.Retry, "TransientFailure"), CancellationToken.None);
@@ -56,7 +93,8 @@ internal static class WorkerSqlAssertions
                 Assert.Equal("Failed", persisted.Status);
                 Assert.Equal("Failed", evidence.Outcome);
                 Assert.Null(evidence.RetryAt);
-                Assert.Null(await ClaimAsync());
+                await Assert.ThrowsAsync<InvalidOperationException>(() => store.FinishAsync(claim, new(JobOutcome.Failed), CancellationToken.None));
+                await VerifyAlertAsync(job.Id, parent.Id, accepted: true);
             }
         }
         Assert.Equal(4, await seed.BackgroundJobAttempts.CountAsync(x => x.JobId == job.Id));
@@ -71,7 +109,7 @@ internal static class WorkerSqlAssertions
         Assert.Equal(0, await store.RecoverAsync(CancellationToken.None));
         await Assert.ThrowsAsync<InvalidOperationException>(() => store.FinishAsync(abandoned, JobResult.Success, CancellationToken.None));
         Assert.Equal("ReconciliationRequired", (await seed.BackgroundJobAttempts.AsNoTracking().SingleAsync(x => x.JobId == abandoned.Id)).ErrorCode);
-        Assert.Null(await ClaimAsync());
+        await VerifyAlertAsync(abandoned.Id, null);
         foreach (var outcome in new[] { JobOutcome.Completed, JobOutcome.Cancelled, JobOutcome.Failed })
         {
             var terminal = new BackgroundJob { JobType = "ApprovalReminder", ScheduledAt = DateTime.UtcNow.AddMinutes(-1) };
@@ -83,6 +121,21 @@ internal static class WorkerSqlAssertions
             Assert.Equal(outcome.ToString(), saved.Status);
             Assert.DoesNotContain("sensitive", saved.LastError ?? "");
             await Assert.ThrowsAsync<InvalidOperationException>(() => store.FinishAsync(current, JobResult.Success, CancellationToken.None));
+            if (outcome == JobOutcome.Failed) await VerifyAlertAsync(terminal.Id, null);
+            else Assert.Null(await ClaimAsync());
+        }
+    }
+
+    private sealed class TestTransport : INotificationTransport
+    {
+        public string Channel => "Teams";
+        public DeliveryOutcome Outcome { get; set; }
+        public NotificationMessage? LastMessage { get; set; }
+
+        public Task<DeliveryResult> SendAsync(NotificationMessage message, CancellationToken cancellationToken)
+        {
+            LastMessage = message;
+            return Task.FromResult(new DeliveryResult(Outcome));
         }
     }
 }

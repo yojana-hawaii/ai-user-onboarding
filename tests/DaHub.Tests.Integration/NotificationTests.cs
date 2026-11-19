@@ -4,6 +4,8 @@ using DaHub.Core.Notifications;
 using DaHub.Infrastructure.Notifications;
 using DaHub.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace DaHub.Tests.Integration;
@@ -74,6 +76,51 @@ public sealed class NotificationTests
         job.AttemptCount = 1;
         Assert.Equal(JobOutcome.Failed, (await handler.ExecuteAsync(job, CancellationToken.None)).Outcome);
         Assert.Equal("Failed", (await database.NotificationLog.SingleAsync()).Status);
+    }
+
+    [Theory]
+    [InlineData("synthetic@example.invalid", true)]
+    [InlineData("replacement@example.invalid", false)]
+    [InlineData(null, false)]
+    public async Task WorkerFailureCanOnlySendToCurrentApprovedRecipient(string? approvedRecipient, bool expectedSend)
+    {
+        await using var database = Database();
+        await new NotificationService(database, TimeProvider.System).EnqueueAsync(
+            Message() with { NotificationType = "WorkerFailure" }, CancellationToken.None);
+        var job = await database.BackgroundJobs.SingleAsync();
+        job.AttemptCount = 1;
+        var settings = new Dictionary<string, string?>();
+        if (approvedRecipient is not null) settings.Add("Notifications:WorkerFailure:Email", approvedRecipient);
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
+        var services = new ServiceCollection().AddNotificationDelivery(configuration);
+        await using var provider = services.BuildServiceProvider();
+        var transport = new Transport(DeliveryOutcome.Accepted);
+        var handler = new NotificationRetryHandler(database, [transport], TimeProvider.System,
+            provider.GetRequiredService<WorkerFailureAlerts>());
+
+        var result = await handler.ExecuteAsync(job, CancellationToken.None);
+
+        Assert.Equal(expectedSend ? JobOutcome.Completed : JobOutcome.Failed, result.Outcome);
+        Assert.Equal(expectedSend ? 1 : 0, transport.Calls);
+        Assert.Equal(expectedSend, (await database.NotificationLog.SingleAsync()).DeliveredAt.HasValue);
+    }
+
+    [Theory]
+    [InlineData("SMS", "Synthetic")]
+    [InlineData("Teams", "unsafe alias")]
+    [InlineData("Email", "outside@example.invalid")]
+    public void WorkerFailureRejectsUnsupportedOrUnapprovedDestination(string channel, string destination)
+    {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            [$"Notifications:WorkerFailure:{channel}"] = destination,
+            ["Notifications:Email:Mode"] = "Live",
+            ["Notifications:Email:Host"] = "relay.example.invalid",
+            ["Notifications:Email:From"] = "sender@example.invalid",
+            ["Notifications:Email:Recipients:0"] = "approved@example.invalid"
+        }).Build();
+
+        Assert.Throws<InvalidOperationException>(() => new ServiceCollection().AddNotificationDelivery(configuration));
     }
 
     [Fact]

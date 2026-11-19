@@ -9,9 +9,9 @@ AttemptCount. A successful retry never overwrites earlier failure evidence.
 The API registers only the queue service; the worker registers delivery transports.
 Callers must authorize the originating action and enqueue within the workflow
 transaction when intent and workflow changes must commit together. No public send
-endpoint is exposed. Lifecycle event/recipient routing, current-revision checks,
-duplicate-event suppression and WBS 1.7 IT-alert wiring remain later integration
-work. Notices carry information, never approval authority. Delivery failure cannot
+endpoint is exposed. Lifecycle event routing, current-revision checks and
+duplicate-event suppression remain later integration work. Notices carry
+information, never approval authority. Delivery failure cannot
 block access disabling or resolve pending approval/EHR work.
 
 ## Channels and configuration
@@ -51,6 +51,18 @@ Webhook HTTP clients disable redirects and cookies and bypass URI-logging handle
 Never enable raw SMTP, HttpClient, EF or provider diagnostics on this worker. Secret
 files require restricted ACLs and approved deployment storage. Persist no credentials,
 password links/tokens, raw provider errors or PHI in payloads, logs or messages.
+
+## Worker failure alerts
+
+Set `Notifications:WorkerFailure:Teams` or `Notifications:WorkerFailure:Slack` to
+an approved IT alias, and/or set `Notifications:WorkerFailure:Email` to an approved
+IT mailbox or distribution address. Configure one destination per selected channel.
+With Live delivery, the configured destination must also appear in that transport's
+approved destinations or recipients. An empty section leaves alert routing disabled.
+Restart the worker to apply configuration changes. Queued alerts for destinations
+that have been removed or replaced fail without sending. Each alert body contains
+only the job ID, attempt number and a prompt to review stored evidence. Notification
+job failures emit critical events and do not enqueue further alerts.
 
 ## Evidence and failure semantics
 

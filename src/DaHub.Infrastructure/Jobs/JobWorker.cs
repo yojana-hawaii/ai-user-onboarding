@@ -37,7 +37,9 @@ public sealed class JobWorker(IServiceScopeFactory scopes, ILogger<JobWorker> lo
         JobResult result;
         try
         {
-            var handlers = scope.ServiceProvider.GetServices<IJobHandler>()
+            // Handler changes must never be flushed by the job outcome transaction.
+            await using var handlerScope = scopes.CreateAsyncScope();
+            var handlers = handlerScope.ServiceProvider.GetServices<IJobHandler>()
                 .Where(handler => string.Equals(handler.JobType, job.JobType, StringComparison.Ordinal)).ToArray();
             if (!JobTypes.All.Contains(job.JobType) || handlers.Length != 1)
                 result = new(JobOutcome.Failed, "HandlerUnavailable");

@@ -77,8 +77,6 @@ public sealed class SqlServerMigrationTests
             await EnrollmentSqlAssertions.BootstrapAsync(admin.ConnectionString);
             await FirstReleaseSchemaAssertions.VerifyAsync(connection);
             await VerifyAuthorizationInvalidationAsync(connection);
-            await WorkerSqlAssertions.VerifyAsync(admin.ConnectionString);
-            await NotificationSqlAssertions.VerifyAsync(admin.ConnectionString);
             Assert.True(location.Id > 0);
             Assert.True(location.IsActive);
             Assert.True(location.CreatedAt > DateTime.UtcNow.AddMinutes(-5));
@@ -112,6 +110,8 @@ public sealed class SqlServerMigrationTests
                     "CREATE TABLE dahub_ita.Forbidden (Id int NOT NULL)"));
             }
 
+            await WorkerSqlAssertions.VerifyAsync(runtime.ConnectionString);
+            await NotificationSqlAssertions.VerifyAsync(admin.ConnectionString);
             await EmployeeProfileSqlAssertions.VerifyAsync(runtime.ConnectionString);
 
             using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
