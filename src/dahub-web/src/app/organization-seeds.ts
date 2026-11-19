@@ -13,7 +13,7 @@ interface SeedPreview {
 @Component({
   selector: 'app-organization-seeds',
   template: `
-    <main>
+    <section>
       <h1>Organization seed data</h1>
       <p>
         Upload a UTF-8 JSON catalog package. Existing records are preserved; conflicts need review.
@@ -38,7 +38,7 @@ interface SeedPreview {
       }
       <p role="status" aria-live="polite">{{ message() }}</p>
       <a href="/">Home</a>
-    </main>
+    </section>
   `,
 })
 export class OrganizationSeeds {

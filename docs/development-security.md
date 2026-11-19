@@ -1,5 +1,23 @@
 # Development security changes
 
+## WBS 1.6 UI shell — November 18, 2026
+
+The local frontend change is based on develop `41ded3f44ba731fc2a05b628428a7055af9c1bc2`. It adds a shared header and sidebar, a loading skeleton, URL-preserving 404 and forbidden views, and separate lazy route groups for onboarding, offboarding, audit and administration. The shell and route guards use the server-issued local permission keys. The organization seed route still requires both `templates.manage` and `users.manage`. The layout preserves same-origin sessions, antiforgery and direct Okta sign-in. Workflow routes are placeholders except for the existing seed import.
+
+WBS 1.6.4.2, 1.6.4 and 1.6 are blocked on the live Okta expiry, reauthentication and original-route journey. The browser fixture uses synthetic session and sign-in responses. This is local implementation evidence; hosted acceptance and live provider acceptance require their own checks. No migration or external provider action was executed.
+
+Local verification passed with 29 frontend tests, 15 Chromium/Firefox/WebKit tests, 28 backend unit tests and 173 credential-free integration/protocol tests. Frontend statement, branch, function and line coverage was 98.15%, 97.33%, 92.85% and 99.50%. Backend line coverage was 88.52% for API, 90.38% for Infrastructure and 100% for Core. The Angular production build emitted four named lazy feature bundles. Lint, formatting, the backend build and offline migration checks, and both Node 24 and Node 26 picomatch regression runs passed. The separate SQL-only test was skipped. The redacted working-tree secret scan passed. The full dependency/history/four-image security gate was outside this local implementation check.
+
+### WBS 1.6 pre-PR verification — November 18, 2026
+
+Fresh `scripts/verify.ps1` exited 0 on the uncommitted WBS 1.6 frontend changes against develop `41ded3f44ba731fc2a05b628428a7055af9c1bc2`. It passed 28 backend unit, 173 credential-free integration/protocol, 29 Angular and 15 Chromium/Firefox/WebKit tests, with the same coverage figures above. The clean install, application and npm toolchain picomatch regressions, build, offline migration checks, lint and formatting passed. The SQL-only test was skipped in the credential-free run. This frontend change did not affect SQL persistence or configuration, so separate SQL runtime probes were outside the review scope. The browser return-route tests used simulated sign-in. Live Okta acceptance remains Blocked, and native Safari and hosted checks are pending.
+
+Fresh `scripts/verify-security.ps1` exited 0. The redacted working-tree and Git-history scans found no leaks across the scanned source and 95 locally available commits. The transitive NuGet audit reported no advisories, the npm lockfile audit reported zero vulnerabilities, and all ten installed-copy picomatch checks passed. The backend, frontend, SQL and E2E development images each reported zero HIGH or CRITICAL findings. Lower severities were outside the image gate.
+
+GitHub confirmed that the proposed base was current on `develop`, historical PR #25 was closed and unmerged, and no related PR was open into develop. The review scope is the WBS 1.6 frontend and its documentation. The gate results describe the pre-commit candidate. No persistent migration, deployment or provider action occurred.
+
+The feature commit was rebased onto develop `ab70b364fb342aefc3c5f83fdb4d31ba7319b54d` after a documentation-only update. The verified frontend files and gate inputs are identical across the two revisions.
+
 ## PR #53 develop acceptance — November 18, 2026
 
 PR #53 head `cb4cb8c238f1914e1e72aa18feadbf9fe919c878` passed [PR CI 44396422331](https://github.com/yojana-hawaii/ai-user-onboarding/actions/runs/44396422331) before its authorized squash merge. Develop commit `41ded3f44ba731fc2a05b628428a7055af9c1bc2` then passed [distinct push CI 44399251204](https://github.com/yojana-hawaii/ai-user-onboarding/actions/runs/44399251204), including both required jobs, full secret/dependency/four-image gates, dual-copy picomatch regressions, three-engine browser tests and separate real SQL/security verification. Each image reported zero HIGH/CRITICAL findings; lower severities are not claimed absent. No CI fix or gate/protection reduction was needed. See [the AGENTS.md completion record](../AGENTS.md#pr-53-documentation-handoff-completed--november-18-2026) for ancestry, maintenance and release boundaries. Earlier PR #53 pending/no-merge notes are historical; this documentation publication request authorizes no new merge, main promotion, deployment or integration of PR #25.
