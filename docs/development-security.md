@@ -1,5 +1,15 @@
 # Development security changes
 
+## E2E image CVE-2026-97054 — November 18, 2026
+
+The develop push run at `911242131b3429ab554ce5cc7df23eae72ec43eb` passed Build, test and format. The security gate failed on a HIGH finding in the E2E image for Go stdlib `v1.27.3`. The subsequent SQL verification step was skipped. [Hosted security job](https://github.com/yojana-hawaii/ai-user-onboarding/actions/runs/44453932191/job/135324273440)
+
+Image inspection located the affected Go build in `/usr/bin/pebble`, an inherited Canonical service manager executable with no package owner in the image. The E2E runner launches its API and browser test processes through Compose and has no Pebble invocation. The Dockerfile now removes that executable from the final filesystem. The pinned Playwright 1.65.1 image and package, Node 24 runtime, existing patches, non-root execution and image scan policy remain in place. [Go advisory](https://pkg.go.dev/vuln/GO-2026-6859)
+
+The rebuilt E2E image confirmed Pebble was absent and ran as UID 1000. Fresh `scripts/verify-security.ps1` passed the redacted source and 98-commit history scans, transitive NuGet audit, npm lockfile audit and ten picomatch checks. The backend, frontend, SQL and E2E images each reported zero HIGH or CRITICAL findings.
+
+Fresh `scripts/verify.ps1` passed 28 backend unit, 173 credential-free integration and protocol, 29 Angular, and 15 Chromium, Firefox and WebKit tests, with coverage, builds, lint and formatting passing. Separate `scripts/test-dev-sql-security.ps1` and `scripts/test-dev-database.ps1` runs passed using a disposable Compose project with a temporary IPv4 loopback binding. The real SQL integration test passed once and the isolated resources were removed. No persistent database, deployment or provider action occurred. Live Okta acceptance remains Blocked.
+
 ## WBS 1.6 UI shell — November 18, 2026
 
 The local frontend change is based on develop `41ded3f44ba731fc2a05b628428a7055af9c1bc2`. It adds a shared header and sidebar, a loading skeleton, URL-preserving 404 and forbidden views, and separate lazy route groups for onboarding, offboarding, audit and administration. The shell and route guards use the server-issued local permission keys. The organization seed route still requires both `templates.manage` and `users.manage`. The layout preserves same-origin sessions, antiforgery and direct Okta sign-in. Workflow routes are placeholders except for the existing seed import.

@@ -8,6 +8,8 @@ RUN npm install --global npm@11.21.1 --ignore-scripts --no-audit --no-fund && np
 RUN install -d -o 1000 -g 1000 /home/node/.npm /workspace/src/dahub-web/node_modules /workspace/src/dahub-web/.angular /workspace/src/dahub-web/dist /workspace/src/dahub-web/coverage /reports
 # Apply the available Ubuntu APT fix for CVE-2026-109518.
 RUN apt-get update && apt-get install -y --no-install-recommends --only-upgrade apt=3.2.1ubuntu0.1 libapt-pkg7.0=3.2.1ubuntu0.1 && rm -rf /var/lib/apt/lists/*
+# Remove the unused Pebble service manager from the browser runner (CVE-2026-97054).
+RUN rm -f /usr/bin/pebble
 ENV HOME=/home/pwuser NPM_CONFIG_CACHE=/home/node/.npm
 USER 1000:1000
 WORKDIR /workspace/src/dahub-web

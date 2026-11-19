@@ -279,6 +279,12 @@ The local WBS 1.6 frontend work uses develop `41ded3f44ba731fc2a05b628428a7055af
 
 Pre-PR scope covers the WBS 1.6 frontend and its documentation against `develop`. GitHub confirmed the same base and the closed, unmerged state of historical PR #25. Preserve the unrelated IIS and prior PR handoff edits in this checkout outside the WBS 1.6 review. Fresh functional and full security gates passed against the uncommitted work. See [the pre-PR results](docs/development-security.md#wbs-16-pre-pr-verification--november-18-2026). Hosted verification starts with a published review head.
 
+### E2E image CVE-2026-97054 — November 18, 2026
+
+The WBS 1.6 develop push run at `911242131b3429ab554ce5cc7df23eae72ec43eb` passed functional checks and failed the E2E image scan. The finding came from unused Canonical Pebble compiled with Go 1.27.3. Keep the targeted removal in the E2E Dockerfile until an upstream image omits or fixes Pebble, and verify any refresh against the image gate and all three browser engines. See [the remediation record](docs/development-security.md#e2e-image-cve-2026-97054--november-18-2026).
+
+Fresh local functional, full security and isolated SQL checks passed for the remediation. All 15 browser tests passed, and every development image had zero HIGH or CRITICAL findings. WBS 1.6, 1.6.4 and 1.6.4.2 remain Blocked on live Okta acceptance.
+
 ## 17. Branch protection and main promotion — November 14, 2026
 
 - Under explicit user authorization, develop now matches main protection: required PRs, current GitHub Actions build/test/format and security checks, admin enforcement, resolved conversations and linear history; force pushes/deletion disabled and independent approval count zero. GitHub API readback verified the settings. WBS 1.1.1.1, 1.1.4.2 and parent 1.1.1 are Completed in Notion. Earlier unprotected-develop statements are historical.
