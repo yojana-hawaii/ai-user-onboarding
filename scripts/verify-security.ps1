@@ -45,9 +45,10 @@ try {
             $scanExitCode = $LASTEXITCODE
             if ($scanExitCode -notin @(0,1)) { throw "Image scanner failed operationally: $image" }
             $report = ($reportLines -join "`n") | ConvertFrom-Json -AsHashtable -Depth 100
+            Write-Output "$image : scanned image $($report['Metadata']['ImageID'])."
             $findings = @(foreach ($target in $report['Results']) {
                 foreach ($finding in $target['Vulnerabilities']) {
-                    [pscustomobject]@{ Image=$image; Package=$finding['PkgName']; CVE=$finding['VulnerabilityID']; Severity=$finding['Severity']; Installed=$finding['InstalledVersion']; Fixed=$finding['FixedVersion'] }
+                    [pscustomobject]@{ Image=$image; Target=$target['Target']; Package=$finding['PkgName']; CVE=$finding['VulnerabilityID']; Severity=$finding['Severity']; Installed=$finding['InstalledVersion']; Fixed=$finding['FixedVersion'] }
                 }
             })
             Write-Output "$image : $($findings.Count) HIGH/CRITICAL findings."
