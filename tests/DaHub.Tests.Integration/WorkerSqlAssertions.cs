@@ -5,6 +5,7 @@ using DaHub.Infrastructure.Jobs;
 using DaHub.Infrastructure.Notifications;
 using DaHub.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -123,6 +124,76 @@ internal static class WorkerSqlAssertions
             await Assert.ThrowsAsync<InvalidOperationException>(() => store.FinishAsync(current, JobResult.Success, CancellationToken.None));
             if (outcome == JobOutcome.Failed) await VerifyAlertAsync(terminal.Id, null);
             else Assert.Null(await ClaimAsync());
+        }
+
+        foreach (var failDuringRecovery in new[] { false, true })
+        {
+            var interruptedAlert = new BackgroundJob { JobType = "ApprovalReminder", ScheduledAt = DateTime.UtcNow.AddMinutes(-1) };
+            seed.Add(interruptedAlert);
+            await seed.SaveChangesAsync();
+            var current = (await ClaimAsync())!;
+            Assert.Equal(interruptedAlert.Id, current.Id);
+            var alertsBefore = await seed.BackgroundJobs.CountAsync(x => x.JobType == "NotificationRetry");
+            if (failDuringRecovery)
+                await seed.BackgroundJobs.Where(x => x.Id == current.Id).ExecuteUpdateAsync(s => s.SetProperty(x => x.StartedAt, DateTime.UtcNow.AddMinutes(-6)));
+
+            // Outcome/attempt UPDATEs execute before SaveChanges inserts the alert. Fail that
+            // insertion under the runtime identity and inspect rollback through another context.
+            var failure = new RejectAlertInsertion();
+            await using (var failingDatabase = new DaHubDbContext(new DbContextOptionsBuilder<DaHubDbContext>()
+                .UseSqlServer(connectionString).AddInterceptors(failure).Options))
+            {
+                var failingStore = new SqlJobStore(failingDatabase, provider.GetRequiredService<WorkerFailureAlerts>());
+                if (failDuringRecovery)
+                    await Assert.ThrowsAsync<DbUpdateException>(() => failingStore.RecoverAsync(CancellationToken.None));
+                else
+                    await Assert.ThrowsAsync<DbUpdateException>(() => failingStore.FinishAsync(current, new(JobOutcome.Failed), CancellationToken.None));
+            }
+            Assert.True(failure.Triggered);
+            var rolledBack = await seed.BackgroundJobs.AsNoTracking().SingleAsync(x => x.Id == current.Id);
+            Assert.Equal("InProgress", rolledBack.Status);
+            Assert.Null(rolledBack.CompletedAt);
+            Assert.Null(rolledBack.LastError);
+            var rolledBackAttempt = await seed.BackgroundJobAttempts.AsNoTracking().SingleAsync(x => x.JobId == current.Id);
+            Assert.Equal("InProgress", rolledBackAttempt.Outcome);
+            Assert.Null(rolledBackAttempt.CompletedAt);
+            Assert.Null(rolledBackAttempt.ErrorCode);
+            Assert.Equal(alertsBefore, await seed.BackgroundJobs.CountAsync(x => x.JobType == "NotificationRetry"));
+
+            await seed.BackgroundJobs.Where(x => x.Id == current.Id).ExecuteUpdateAsync(s => s.SetProperty(x => x.StartedAt, DateTime.UtcNow.AddMinutes(-6)));
+            await using (var recoveryDatabase = new DaHubDbContext(Options()))
+            {
+                var recoveryStore = new SqlJobStore(recoveryDatabase, provider.GetRequiredService<WorkerFailureAlerts>());
+                Assert.Equal(1, await recoveryStore.RecoverAsync(CancellationToken.None));
+                Assert.Equal(0, await recoveryStore.RecoverAsync(CancellationToken.None));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => recoveryStore.FinishAsync(current, JobResult.Success, CancellationToken.None));
+            }
+            var recovered = await seed.BackgroundJobs.AsNoTracking().SingleAsync(x => x.Id == current.Id);
+            Assert.Equal("Failed", recovered.Status);
+            Assert.Equal("ReconciliationRequired", recovered.LastError);
+            var recoveredAttempt = await seed.BackgroundJobAttempts.AsNoTracking().SingleAsync(x => x.JobId == current.Id);
+            Assert.Equal("Failed", recoveredAttempt.Outcome);
+            Assert.Equal("ReconciliationRequired", recoveredAttempt.ErrorCode);
+            Assert.NotNull(recoveredAttempt.CompletedAt);
+            Assert.Equal(alertsBefore + 1, await seed.BackgroundJobs.CountAsync(x => x.JobType == "NotificationRetry"));
+            await VerifyAlertAsync(current.Id, null, accepted: true);
+        }
+    }
+
+    private sealed class RejectAlertInsertion : SaveChangesInterceptor
+    {
+        public bool Triggered { get; private set; }
+
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData,
+            InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            if (eventData.Context!.ChangeTracker.Entries<BackgroundJob>()
+                .Any(x => x.State == EntityState.Added && x.Entity.JobType == "NotificationRetry"))
+            {
+                Triggered = true;
+                throw new DbUpdateException("Synthetic alert insertion failure.");
+            }
+            return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
     }
 
