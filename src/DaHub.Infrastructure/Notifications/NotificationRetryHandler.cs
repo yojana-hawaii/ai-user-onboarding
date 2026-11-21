@@ -7,7 +7,7 @@ using DaHub.Infrastructure.Persistence;
 namespace DaHub.Infrastructure.Notifications;
 
 public sealed class NotificationRetryHandler(DaHubDbContext database,
-    IEnumerable<INotificationTransport> transports, TimeProvider clock) : IJobHandler
+    IEnumerable<INotificationTransport> transports, TimeProvider clock, WorkerFailureAlerts? failureAlerts = null) : IJobHandler
 {
     public string JobType => "NotificationRetry";
 
@@ -46,7 +46,9 @@ public sealed class NotificationRetryHandler(DaHubDbContext database,
         try
         {
             var senders = transports.Where(x => x.Channel == message.Channel).ToArray();
-            delivery = senders.Length == 1
+            var approved = message.NotificationType != WorkerFailureAlerts.NotificationType
+                || failureAlerts?.IsApproved(message) == true;
+            delivery = approved && senders.Length == 1
                 ? await senders[0].SendAsync(message, cancellationToken) : new(DeliveryOutcome.PermanentFailure);
         }
         catch (Exception) { delivery = new(DeliveryOutcome.Uncertain); }
