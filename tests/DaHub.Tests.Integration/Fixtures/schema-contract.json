@@ -3629,5 +3629,193 @@
         ]
       }
     ]
+  },
+  {
+    "table": "ProvisioningActions",
+    "columns": [
+      {
+        "name": "StepId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ActionKey",
+        "type": "nvarchar(100)",
+        "nullable": false,
+        "identity": false,
+        "collation": "Latin1_General_100_BIN2"
+      },
+      {
+        "name": "RequestId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Revision",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "EmploymentPeriodId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ApprovedEndAtUtc",
+        "type": "datetime2",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "InitiatedByUserId",
+        "type": "int",
+        "nullable": false,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "PrerequisiteStepId",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "Operation",
+        "type": "nvarchar(30)",
+        "nullable": false,
+        "identity": false,
+        "collation": "SQL_Latin1_General_CP1_CI_AS"
+      },
+      {
+        "name": "State",
+        "type": "nvarchar(30)",
+        "nullable": false,
+        "identity": false,
+        "collation": "SQL_Latin1_General_CP1_CI_AS"
+      },
+      {
+        "name": "OwnerJobId",
+        "type": "bigint",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "OwnerAttempt",
+        "type": "int",
+        "nullable": true,
+        "identity": false,
+        "collation": null
+      },
+      {
+        "name": "ExternalId",
+        "type": "nvarchar(128)",
+        "nullable": true,
+        "identity": false,
+        "collation": "SQL_Latin1_General_CP1_CI_AS"
+      },
+      {
+        "name": "EvidenceReference",
+        "type": "nvarchar(128)",
+        "nullable": true,
+        "identity": false,
+        "collation": "SQL_Latin1_General_CP1_CI_AS"
+      }
+    ],
+    "keys": [
+      "StepId"
+    ],
+    "indexes": [
+      {
+        "unique": true,
+        "name": "IX_ProvisioningActions_ActionKey",
+        "columns": [
+          "ActionKey"
+        ],
+        "filter": null
+      }
+    ],
+    "checks": [
+      {
+        "name": "CK_ProvisioningActions_Operation",
+        "sql": ""
+      },
+      {
+        "name": "CK_ProvisioningActions_Prerequisite",
+        "sql": ""
+      },
+      {
+        "name": "CK_ProvisioningActions_State",
+        "sql": ""
+      }
+    ],
+    "foreignKeys": [
+      {
+        "principal": "ProvisioningSteps",
+        "columns": [
+          "StepId"
+        ],
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "principal": "RequestRevisions",
+        "columns": [
+          "RequestId",
+          "Revision"
+        ],
+        "principalColumns": [
+          "RequestId",
+          "Revision"
+        ]
+      },
+      {
+        "principal": "EmploymentPeriods",
+        "columns": [
+          "EmploymentPeriodId"
+        ],
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "principal": "AppUsers",
+        "columns": [
+          "InitiatedByUserId"
+        ],
+        "principalColumns": [
+          "Id"
+        ]
+      },
+      {
+        "principal": "ProvisioningActions",
+        "columns": [
+          "PrerequisiteStepId"
+        ],
+        "principalColumns": [
+          "StepId"
+        ]
+      },
+      {
+        "principal": "BackgroundJobs",
+        "columns": [
+          "OwnerJobId"
+        ],
+        "principalColumns": [
+          "Id"
+        ]
+      }
+    ]
   }
 ]

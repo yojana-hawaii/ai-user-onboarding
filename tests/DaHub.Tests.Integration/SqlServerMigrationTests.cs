@@ -60,14 +60,14 @@ public sealed class SqlServerMigrationTests
             await context.Database.MigrateAsync();
             await context.Database.MigrateAsync();
             Assert.False(context.Database.HasPendingModelChanges());
-            Assert.Equal(6, (await context.Database.GetAppliedMigrationsAsync()).Count());
+            Assert.Equal(7, (await context.Database.GetAppliedMigrationsAsync()).Count());
 
             await using var connection = new SqlConnection(admin.ConnectionString);
             await connection.OpenAsync();
             await using (var tables = new SqlCommand(
                 "SELECT COUNT(*) FROM sys.tables WHERE schema_id=SCHEMA_ID('dahub_ita') AND name<>'__EFMigrationsHistory'", connection))
             {
-                Assert.Equal(32, Convert.ToInt32(await tables.ExecuteScalarAsync()));
+                Assert.Equal(33, Convert.ToInt32(await tables.ExecuteScalarAsync()));
             }
 
             Assert.Equal("Synthetic clinic", (await context.Locations.SingleAsync(x => x.SiteCode == "TEST")).Name);
@@ -111,6 +111,7 @@ public sealed class SqlServerMigrationTests
             }
 
             await WorkerSqlAssertions.VerifyAsync(runtime.ConnectionString);
+            await ProvisioningSqlAssertions.VerifyAsync(runtime.ConnectionString);
             await NotificationSqlAssertions.VerifyAsync(admin.ConnectionString);
             await EmployeeProfileSqlAssertions.VerifyAsync(runtime.ConnectionString);
 

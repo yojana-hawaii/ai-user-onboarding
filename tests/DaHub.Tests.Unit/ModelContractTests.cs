@@ -14,7 +14,7 @@ public sealed class ModelContractTests
         using var context = new DaHubDesignTimeDbContextFactory().CreateDbContext([]);
         var model = context.Model;
         var entities = model.GetEntityTypes().ToArray();
-        Assert.Equal(32, entities.Length);
+        Assert.Equal(33, entities.Length);
         Assert.All(entities, entity =>
         {
             Assert.Equal(DaHubDbContext.Schema, entity.GetSchema());

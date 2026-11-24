@@ -15,10 +15,16 @@ public sealed class SqlJobStore(DaHubDbContext database, WorkerFailureAlerts? fa
         // row locks; UPDLOCK holds the selected row through commit. No SELECT-then-UPDATE race.
         var jobs = await database.BackgroundJobs.FromSqlRaw("""
             ;WITH candidate AS (
-                SELECT TOP (1) * FROM dahub_ita.BackgroundJobs WITH (UPDLOCK, READPAST, ROWLOCK)
-                WHERE Status = N'Queued' AND ScheduledAt <= SYSUTCDATETIME()
-                    AND AttemptCount < MaxAttempts AND MaxAttempts BETWEEN 1 AND 4
-                ORDER BY ScheduledAt, Id
+                SELECT TOP (1) j.* FROM dahub_ita.BackgroundJobs j WITH (UPDLOCK, READPAST, ROWLOCK)
+                WHERE j.Status = N'Queued' AND j.ScheduledAt <= SYSUTCDATETIME()
+                    AND j.AttemptCount < j.MaxAttempts AND j.MaxAttempts BETWEEN 1 AND 4
+                    AND NOT EXISTS (SELECT 1 FROM dahub_ita.ProvisioningActions a
+                        WHERE a.StepId = j.ProvisioningStepId AND j.JobType = N'ProvisioningRetry'
+                        AND a.PrerequisiteStepId IS NOT NULL AND NOT EXISTS (
+                            SELECT 1 FROM dahub_ita.ProvisioningActions p
+                            WHERE p.StepId = a.PrerequisiteStepId AND p.RequestId = a.RequestId
+                                AND p.Revision = a.Revision AND p.State = N'Completed'))
+                ORDER BY j.ScheduledAt, j.Id
             )
             UPDATE candidate SET Status = N'InProgress', StartedAt = SYSUTCDATETIME(),
                 CompletedAt = NULL, AttemptCount = AttemptCount + 1
@@ -67,11 +73,12 @@ public sealed class SqlJobStore(DaHubDbContext database, WorkerFailureAlerts? fa
             .ExecuteUpdateAsync(set => set.SetProperty(x => x.Outcome, retry ? "Retry" : status)
                 .SetProperty(x => x.CompletedAt, now).SetProperty(x => x.RetryAt, retry ? deadline : (DateTime?)null)
                 .SetProperty(x => x.ErrorCode, code), cancellationToken);
+        await new SqlProvisioningActions(database).ProjectAsync(job, status, code, now, result.ProvisioningReceipt, cancellationToken);
         if (status == "Failed" && failureAlerts is not null)
         {
             failureAlerts.AddToQueue(database, job, now);
-            await database.SaveChangesAsync(cancellationToken);
         }
+        await database.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
 
@@ -92,8 +99,10 @@ public sealed class SqlJobStore(DaHubDbContext database, WorkerFailureAlerts? fa
                 .ExecuteUpdateAsync(set => set.SetProperty(x => x.Outcome, "Failed")
                     .SetProperty(x => x.CompletedAt, job.CompletedAt).SetProperty(x => x.ErrorCode, "ReconciliationRequired"), cancellationToken);
             failureAlerts?.AddToQueue(database, job, job.CompletedAt!.Value);
+            await new SqlProvisioningActions(database).ProjectAsync(job, "Failed", "ReconciliationRequired",
+                job.CompletedAt!.Value, null, cancellationToken);
         }
-        if (jobs.Count > 0 && failureAlerts is not null)
+        if (jobs.Count > 0)
             await database.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return jobs.Count;
