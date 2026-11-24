@@ -5,6 +5,7 @@ import { Route, Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { routes } from './app.routes';
+import { SessionState } from './permissions';
 
 function setup() {
   TestBed.configureTestingModule({
@@ -26,6 +27,89 @@ function replyToSignOutPreparation(http: HttpTestingController) {
 }
 
 describe('Permission routes', () => {
+  it.each([
+    ['success', 'revoked'],
+    ['error', 'revoked'],
+    ['success', 'signed out'],
+    ['error', 'signed out'],
+  ])('ignores an older %s after a newer session is %s', (olderOutcome, newestOutcome) => {
+    const { http } = setup();
+    const state = TestBed.inject(SessionState);
+    state.load().subscribe({ error: () => undefined });
+    const older = http.expectOne('/api/auth/session');
+    state.load().subscribe({ error: () => undefined });
+    const newest =
+      newestOutcome === 'revoked'
+        ? { appUserId: 1, displayName: 'Synthetic User', permissions: [] }
+        : null;
+    if (newest) http.expectOne('/api/auth/session').flush(newest);
+    else
+      http.expectOne('/api/auth/session').flush(null, { status: 401, statusText: 'Unauthorized' });
+
+    if (olderOutcome === 'success')
+      older.flush({ appUserId: 1, displayName: 'Synthetic User', permissions: ['audit.search'] });
+    else older.flush(null, { status: 503, statusText: 'Unavailable' });
+
+    expect(state.session()).toEqual(newest);
+    http.verify();
+  });
+
+  it.each([
+    ['/provisioning', 'provisioning.execute'],
+    ['/audit', 'audit.search'],
+  ])('removes a revoked grant while preserving the shell on %s', async (path, permission) => {
+    const { http, router } = setup();
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/');
+    await respondToSession(http, [permission]);
+    harness.detectChanges();
+    replyToSignOutPreparation(http);
+    const header = harness.routeNativeElement?.querySelector('header');
+    const main = harness.routeNativeElement?.querySelector('main');
+    expect(harness.routeNativeElement?.querySelector(`nav a[href="${path}"]`)).not.toBeNull();
+
+    const navigation = harness.navigateByUrl(path);
+    const pending = await vi.waitFor(() => http.expectOne('/api/auth/session'));
+    harness.detectChanges();
+    expect(main?.getAttribute('aria-busy')).toBe('true');
+    expect(main?.querySelector('.loading-skeleton')).not.toBeNull();
+    pending.flush({ appUserId: 1, displayName: 'Synthetic User', permissions: [] });
+    await navigation;
+
+    expect(router.url).toBe('/forbidden');
+    expect(harness.routeNativeElement?.querySelector('header')).toBe(header);
+    expect(main?.getAttribute('aria-busy')).toBe('false');
+    expect(main?.querySelector('.loading-skeleton')).toBeNull();
+    expect(main?.querySelector('h1')?.textContent).toBe('Access denied');
+    expect(harness.routeNativeElement?.querySelector('nav')).toBeNull();
+    http.verify();
+  });
+
+  it.each([
+    ['/requests', 'requests.view.own'],
+    ['/audit', 'audit.search'],
+  ])('rechecks the session for query-only navigation on %s', async (path, permission) => {
+    const { http, router } = setup();
+    const harness = await RouterTestingHarness.create();
+    let navigation = harness.navigateByUrl(path);
+    await respondToSession(http, [permission]);
+    await navigation;
+    replyToSignOutPreparation(http);
+    const target = path + '?page=2';
+
+    navigation = harness.navigateByUrl(target);
+    const pending = await vi.waitFor(() => http.expectOne('/api/auth/session'));
+    pending.flush(null, { status: 401, statusText: 'Unauthorized' });
+    await navigation;
+
+    expect(router.parseUrl(router.url).queryParams['returnUrl']).toBe(target);
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toBe('Sign in required');
+    expect(harness.routeNativeElement?.querySelector('a')?.getAttribute('href')).toBe(
+      '/api/auth/login?returnUrl=' + encodeURIComponent(target),
+    );
+    http.verify();
+  });
+
   it('sends an anonymous visitor to Okta sign-in with the original path and query', async () => {
     const { http, router } = setup();
     const harness = await RouterTestingHarness.create();
