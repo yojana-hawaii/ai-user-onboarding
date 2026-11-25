@@ -36,6 +36,7 @@ public sealed partial class DaHubDbContext(DbContextOptions<DaHubDbContext> opti
     public DbSet<RequestAccessTemplate> RequestAccessTemplates => Set<RequestAccessTemplate>();
     public DbSet<RequestApproval> RequestApprovals => Set<RequestApproval>();
     public DbSet<ProvisioningStep> ProvisioningSteps => Set<ProvisioningStep>();
+    public DbSet<ProvisioningAction> ProvisioningActions => Set<ProvisioningAction>();
     public DbSet<AuditLogEntry> AuditLog => Set<AuditLogEntry>();
     public DbSet<SysAidTicket> SysAidTickets => Set<SysAidTicket>();
     public DbSet<BackgroundJob> BackgroundJobs => Set<BackgroundJob>();

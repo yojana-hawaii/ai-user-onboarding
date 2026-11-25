@@ -21,6 +21,7 @@ public enum JobOutcome { Completed, Retry, Failed, Cancelled }
 public sealed record JobResult(JobOutcome Outcome, string? Code = null, DateTime? RetryAtUtc = null)
 {
     public static JobResult Success { get; } = new(JobOutcome.Completed);
+    public ProvisioningReceipt? ProvisioningReceipt { get; init; }
 }
 
 public interface IJobHandler
